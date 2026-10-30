@@ -1,0 +1,53 @@
+autoinstall:
+  version: 1
+  interactive-sections: []
+  refresh-installer:
+    update: false
+  locale: en_US.UTF-8
+  keyboard:
+    layout: us
+  timezone: UTC
+  source:
+    id: ubuntu-server
+  network:
+    version: 2
+    ethernets:
+      lan:
+        match:
+          name: "en*"
+        dhcp4: true
+        addresses: [192.168.40.241/24]
+        routes:
+          - to: default
+            via: 192.168.40.1
+            metric: 500
+        nameservers:
+          addresses: [192.168.40.1]
+  apt:
+    fallback: offline-install
+  storage:
+    layout:
+      name: lvm
+      sizing-policy: all
+      match:
+        path: "@SATA_DISK@"
+  identity:
+    hostname: vflab
+    realname: offload
+    username: offload
+    password: '@CONSOLE_HASH@'
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys:
+      - "@CONTROLLER_KEY@"
+  drivers:
+    install: false
+  updates: security
+  shutdown: reboot
+  early-commands:
+    - sh /cdrom/vflab/early.sh
+  late-commands:
+    - sh /cdrom/vflab/late.sh
+  error-commands:
+    - "touch /run/casper-no-prompt"

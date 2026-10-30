@@ -1,0 +1,12 @@
+# machine-local facts
+CLAUDE.local.md
+.scratch/
+# vflab installer: downloaded ISO, build output, installed image, QEMU test state
+ops/vflab/dl/
+ops/vflab/out/
+ops/vflab/stick-*/
+ops/vflab/test/bios/
+ops/vflab/test/uefi/
+ops/vflab/test/*.log
+ops/vflab/test/known_hosts
+ops/vflab/vflab_known_hosts
