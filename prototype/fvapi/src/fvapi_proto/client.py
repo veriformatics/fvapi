@@ -191,9 +191,18 @@ def replay_bundle(directory, allowed_axioms=None, execute=run):
     return report, 0 if report["status"] == "pass" else 1
 
 
-def local_check(directory, input_value, container=None):
+def local_check(directory, input_value, container=None, allowed_axioms=None):
     with execution(directory, container) as (root, execute):
-        return check_bundle(root, input_value, execute, container is not None)
+        audit, code = replay_bundle(root, allowed_axioms, execute)
+        report = {"audit": audit}
+        if code:
+            return report
+        try:
+            report["local"] = check_bundle(root, input_value, execute, container is not None)
+        except (ClientError, OSError, ValueError, KeyError, TypeError,
+                subprocess.SubprocessError) as exc:
+            report["local_error"] = str(exc)
+        return report
 
 
 def check_bundle(directory, input_value, execute=run, in_container=False):
@@ -274,6 +283,11 @@ def render(value, command):
         server = value.get("server", value)
         print(f"Server verdict: {server['verdict'].upper()}")
         print(json.dumps(server["output"], indent=2, ensure_ascii=False))
+        if "audit" in value:
+            print(f"Proof replay audit: {value['audit']['status'].upper()}")
+            render(value["audit"], "replay")
+        if "local_error" in value:
+            print(f"FAIL local checker: {value['local_error']}")
         if "local" in value:
             print(f"Local verdict: {value['local']['verdict'].upper()}")
             print("PASS local and server JSON verdicts agree" if value["agree"]
@@ -305,6 +319,8 @@ def parser():
         if name in ("replay", "check"):
             command.add_argument("--container", nargs="?", const=DEFAULT_IMAGE, metavar="IMAGE",
                                  help="Run Lean in a local podman image (default: %(const)s).")
+            command.add_argument("--axioms", default=os.environ.get("FVAPI_AXIOMS"),
+                                 help="Allowed axioms, comma-separated (default: FVAPI_AXIOMS or propext,Classical.choice,Quot.sound). An empty value allows none.")
         if name in ("show", "fetch", "check"):
             command.add_argument("id", help="Entry ID")
         if name == "lookup":
@@ -315,11 +331,9 @@ def parser():
             command.add_argument("-o", "--output", required=True, help="New or empty output directory")
         elif name == "replay":
             command.add_argument("directory", help="Directory with manifest.json")
-            command.add_argument("--axioms", default=os.environ.get("FVAPI_AXIOMS"),
-                                 help="Allowed axioms, comma-separated (default: FVAPI_AXIOMS or propext,Classical.choice,Quot.sound). An empty value allows none.")
         elif name == "check":
             command.add_argument("input", help="Input JSON file")
-            command.add_argument("--recheck", action="store_true", help="Build and run the local checker.")
+            command.add_argument("--recheck", action="store_true", help="Audit the proof, then build and run the local checker.")
     return result
 
 
@@ -327,6 +341,8 @@ def main():
     args = parser().parse_args()
     code = 0
     try:
+        if args.command in ("replay", "check"):
+            allowed = None if args.axioms is None else [a.strip() for a in args.axioms.split(",") if a.strip()]
         if args.command == "catalog":
             value = request(args.api, "/v0/catalog")
         elif args.command == "show":
@@ -340,7 +356,6 @@ def main():
         elif args.command == "fetch":
             value = fetch(args.api, args.id, args.output)
         elif args.command == "replay":
-            allowed = None if args.axioms is None else [a.strip() for a in args.axioms.split(",") if a.strip()]
             value, code = replay(args.directory, allowed, args.container)
         else:
             if args.container is not None and not args.recheck:
@@ -352,10 +367,12 @@ def main():
                 server = value
                 with tempfile.TemporaryDirectory(prefix="fvapi-bundle-") as temp:
                     fetch(args.api, args.id, temp)
-                    local = local_check(temp, input_value, args.container)
-                agree = all(local[key] == server[key] for key in ("verdict", "output", "exit_code"))
-                value = {"server": server, "local": local, "agree": agree}
-                code = 0 if agree else 1
+                    value = {"server": server, **local_check(temp, input_value, args.container, allowed)}
+                code = 1
+                if "local" in value:
+                    value["agree"] = all(value["local"][key] == server[key]
+                                         for key in ("verdict", "output", "exit_code"))
+                    code = 0 if value["audit"]["status"] == "pass" and value["agree"] else 1
         if args.json:
             print(json.dumps(value, indent=2, ensure_ascii=False))
         else:
