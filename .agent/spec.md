@@ -23,13 +23,12 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - Lookup (user ruling): every supplied key (`spec_id`, `artifact_sha256`, `statement`) must point to the same entry; any disagreement = a miss logged as demand, naming the mismatch (a proof about another build never answers).
 - Delivered-bundle terms (user ruling): decided later; until then every private-library bundle states "provisional: internal evaluation only", and final terms are set before any outside caller receives a bundle.
 - Re-check trust (user ruling): the API stays one request → answer + bundle; the optional re-check runs caller-side in the open-source client against a client-held axiom allowlist (default `propext`, `Classical.choice`, `Quot.sound`, caller-editable); the bundle's own axiom list is displayed, never trusted; plus an optional published container for a re-check independent of the caller's Lean install.
-- Idle library work (user ruling): shown in the next ITERATE round as a visible stub (a demand item moving queued → being proved → added to the library); the real loop = IMPLEMENT.
+- Idle library work (user ruling): no ITERATE stub; the idle-work demand feature (demand item queued → being proved → added to the library, shown in the console) is built for real in IMPLEMENT.
 - Code licence (user ruling): Apache-2.0 (`LICENSE`, canonical text); library content stays private and unlicensed.
 
 ## Tasks
 
 - [ ] Re-check container: optional published image (Lean 4.35 + bundle deps) the client can run `replay`/`--recheck` in; caller allowlist unchanged
-- [ ] Idle-work stub in the console: a demand item visibly moves queued → being proved → added to library (fake worker, labelled as a stub); seam `GET /v0/work` → 3 console variants (recorder lane, graph node, work queue panel) → user pick
 - [ ] Round-1 console fixes: provisional bundle terms shown (API returns `licence.terms`, console omitted it); bundle axiom list labelled as declared, never trusted; readout label follows the action (lookup ≠ "Input checker")
 - Deferred queue → `.agent/deferred.md`
 
