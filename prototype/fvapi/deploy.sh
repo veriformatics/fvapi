@@ -4,7 +4,7 @@ HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$HERE/../.." && pwd)
 COMMON=$(git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir)
 PRIMARY=$(dirname "$COMMON")
-TARGET=${FVAPI_TARGET:-offload@192.168.40.241}
+TARGET=${FVAPI_TARGET:-eturkes@192.168.40.241}
 KNOWN_HOSTS=${FVAPI_KNOWN_HOSTS:-$PRIMARY/ops/vflab/vflab_known_hosts}
 MANIFEST=${FVAPI_SEED:-$PRIMARY/prototype/fvapi/seed.local.json}
 SSH=(ssh -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS" "$TARGET")
@@ -72,7 +72,7 @@ sudo tee /etc/systemd/system/fvapi-proto.service >/dev/null <<UNIT
 Description=fvapi disposable prototype
 After=network.target
 [Service]
-User=offload
+User=$(id -un)
 WorkingDirectory=$HOME/fvapi-proto
 Environment=PATH=$HOME/.local/bin:$HOME/.elan/bin:/usr/local/bin:/usr/bin:/bin
 Environment=FVAPI_STORE=/srv/data/fvapi
