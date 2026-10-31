@@ -1,3 +1,7 @@
 # Deferred
 
 - vflab has no copy off the machine. → restic to an append-only server on the controller + an encrypted cloud copy once `/srv/data` holds library data; acceptance = a restore of a test file from each copy onto a fresh path, compared with `cmp`.
+- Client replay + `check --recheck` run Lean unsandboxed on delivered files (PROTOTYPE shortcut; Lean meta-code can write files at elaboration). → Comparator-style sandbox (no network, scratch dir, resource caps) around every client-side `lean`/checker run; acceptance = a planted bundle whose `.lean` runs `IO.FS.writeFile` outside the bundle dir fails the replay and leaves no file behind.
+- API has no auth + listens on the LAN (`0.0.0.0:8441`, PROTOTYPE posture). → caller identity + per-caller limits before any non-founder caller; acceptance = an unauthenticated request gets 401 and an authenticated one 200, both from a second host.
+- fvTrace + fva do not call fvapi yet (Intent: both use it in normal work). → a client path in each (opt-in, spec id + hash lookups); acceptance = an fva or fvTrace command run against vflab returns an fvapi answer and re-checks it with the client allowlist.
+- Recorded fva entries (`fva.*`) carry no transcript and are not re-run by fvapi. → replay each on vflab with Mathlib + fva at 56a4537 and store the real transcript; acceptance = each entry's `replay.status` = `real` and `fvapi replay` rc 0 on vflab.
