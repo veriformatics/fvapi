@@ -1,0 +1,15 @@
+FROM docker.io/library/debian:trixie-slim AS download
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl zstd \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /download
+# GitHub release asset digest: leanprover/lean4 v4.35.0, linux x86_64.
+RUN curl -fL --retry 3 https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst -o lean.tar.zst \
+    && echo '7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d  lean.tar.zst' | sha256sum -c - \
+    && mkdir /opt/lean && tar --zstd -xf lean.tar.zst --strip-components=1 -C /opt/lean
+
+FROM docker.io/library/debian:trixie-slim
+COPY --from=download /opt/lean /opt/lean
+ENV PATH="/opt/lean/bin:${PATH}"
+# Core + Std only. Mathlib/fva entries are recorded stubs, not replayable here.
+RUN lean --version
+CMD ["lean", "--version"]

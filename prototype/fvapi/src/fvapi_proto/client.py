@@ -1,12 +1,14 @@
 """Disposable v0 client. Replay executes our own delivered Lean code unsandboxed."""
 
 import argparse
+from contextlib import contextmanager
 import hashlib
 import io
 import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -76,6 +78,36 @@ def run(command, root, env=None):
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120)
 
 
+DEFAULT_IMAGE = "fvapi-recheck:lean-4.35.0"
+
+
+@contextmanager
+def execution(directory, image):
+    if image is None:
+        yield directory, run
+        return
+    with tempfile.TemporaryDirectory(prefix="fvapi-container-") as temp:
+        root = Path(temp) / "bundle"
+        shutil.copytree(directory, root, symlinks=True)
+
+        def container_run(command, cwd, env=None):
+            argv = ["podman", "run", "--rm", "--pull=never", "--network=none",
+                    "--userns=keep-id", "--user", f"{os.getuid()}:{os.getgid()}",
+                    "--cap-drop=all", "--security-opt=no-new-privileges",
+                    "--volume", f"{root}:{root}:rw,Z", "--workdir", str(root)]
+            if env is not None and "LEAN_PATH" in env:
+                argv += ["--env", f"LEAN_PATH={env['LEAN_PATH']}"]
+            try:
+                result = run(argv + [image] + command, cwd)
+            except FileNotFoundError as exc:
+                raise ClientError("podman was not found. Install podman to use --container.") from exc
+            if result.returncode == 125:
+                raise ClientError(f"Cannot run container {image}. Build the image with recheck/build.sh or supply a local image.\n{result.stdout}")
+            return result
+
+        yield root, container_run
+
+
 def inspect_bundle(root):
     root = Path(root).resolve()
     entry = json.loads((root / "manifest.json").read_text())
@@ -96,9 +128,9 @@ def inspect_bundle(root):
     return root, entry, checks
 
 
-def lean_version(root, toolchain, checks):
+def lean_version(root, toolchain, checks, execute=run):
     try:
-        version = run(["lean", "--version"], root)
+        version = execute(["lean", "--version"], root)
     except FileNotFoundError:
         checks.append({"pass": False, "check": "toolchain", "detail": "lean was not found",
                        "fix": f"Install {toolchain} with elan and put its bin directory on PATH."})
@@ -117,7 +149,12 @@ def lean_version(root, toolchain, checks):
 DEFAULT_AXIOMS = ("propext", "Classical.choice", "Quot.sound")
 
 
-def replay(directory, allowed_axioms=None):
+def replay(directory, allowed_axioms=None, container=None):
+    with execution(directory, container) as (root, execute):
+        return replay_bundle(root, allowed_axioms, execute)
+
+
+def replay_bundle(directory, allowed_axioms=None, execute=run):
     root, entry, checks = inspect_bundle(directory)
     allowed = set(DEFAULT_AXIOMS if allowed_axioms is None else allowed_axioms)
     report = {"id": entry["id"], "checks": checks, "status": "fail",
@@ -132,9 +169,9 @@ def replay(directory, allowed_axioms=None):
         return report, 3
     if replay_spec["status"] != "real":
         raise ClientError(f"Unknown replay status: {replay_spec['status']}")
-    if not lean_version(root, entry["toolchain"], checks):
+    if not lean_version(root, entry["toolchain"], checks, execute):
         return report, 1
-    result = run(["sh", "-c", replay_spec["command"]], root)
+    result = execute(["sh", "-c", replay_spec["command"]], root)
     checks.append({"pass": result.returncode == 0, "check": "replay command",
                    "detail": f"exit {result.returncode}"})
     report["transcript"] = result.stdout
@@ -154,7 +191,12 @@ def replay(directory, allowed_axioms=None):
     return report, 0 if report["status"] == "pass" else 1
 
 
-def local_check(directory, input_value):
+def local_check(directory, input_value, container=None):
+    with execution(directory, container) as (root, execute):
+        return check_bundle(root, input_value, execute, container is not None)
+
+
+def check_bundle(directory, input_value, execute=run, in_container=False):
     root, entry, checks = inspect_bundle(directory)
     if not all(item["pass"] for item in checks):
         raise ClientError("The downloaded bundle failed its hashes or statement checks.")
@@ -169,21 +211,21 @@ def local_check(directory, input_value):
     if (not isinstance(builds, list) or not all(valid_argv(argv) for argv in builds)
             or not valid_argv(command) or "{input}" not in command):
         raise ClientError("Invalid check.recheck instructions. Supply build argument lists and a run argument list with an {input} token.")
-    if not lean_version(root, entry["toolchain"], checks):
+    if not lean_version(root, entry["toolchain"], checks, execute):
         raise ClientError(f"Lean version mismatch. {checks[-1]['fix']}")
-    lib = run(["lean", "--print-libdir"], root)
+    lib = execute(["lean", "--print-libdir"], root)
     if lib.returncode:
         raise ClientError(f"Cannot find the Lean library:\n{lib.stdout}")
     env = os.environ | {"LEAN_PATH": os.pathsep.join([str(root), lib.stdout.strip()])}
     for argv in builds:
-        build = run(argv, root, env)
+        build = execute(argv, root, env)
         if build.returncode:
             raise ClientError(f"The local checker build failed (exit {build.returncode}):\n{build.stdout}")
     # Keep the exact submitted JSON value; the temporary file is never supplied by the bundle.
-    with tempfile.TemporaryDirectory(prefix="fvapi-input-") as temp:
+    with tempfile.TemporaryDirectory(prefix="fvapi-input-", dir=root if in_container else None) as temp:
         input_path = Path(temp) / "input.json"
         input_path.write_text(json.dumps(input_value))
-        result = run([str(input_path) if arg == "{input}" else arg for arg in command], root, env)
+        result = execute([str(input_path) if arg == "{input}" else arg for arg in command], root, env)
     outputs = []
     for line in result.stdout.splitlines():
         try:
@@ -260,6 +302,9 @@ def parser():
         command = commands.add_parser(name)
         command.add_argument("--json", action="store_true", default=argparse.SUPPRESS,
                              help="Print JSON instead of a table.")
+        if name in ("replay", "check"):
+            command.add_argument("--container", nargs="?", const=DEFAULT_IMAGE, metavar="IMAGE",
+                                 help="Run Lean in a local podman image (default: %(const)s).")
         if name in ("show", "fetch", "check"):
             command.add_argument("id", help="Entry ID")
         if name == "lookup":
@@ -296,8 +341,10 @@ def main():
             value = fetch(args.api, args.id, args.output)
         elif args.command == "replay":
             allowed = None if args.axioms is None else [a.strip() for a in args.axioms.split(",") if a.strip()]
-            value, code = replay(args.directory, allowed)
+            value, code = replay(args.directory, allowed, args.container)
         else:
+            if args.container is not None and not args.recheck:
+                raise ClientError("Use --recheck with --container to run the local checker.")
             input_value = json.loads(Path(args.input).read_text())
             value = request(args.api, "/v0/checks/" + quote(args.id, safe=""), input_value)
             code = 0 if value["verdict"] == "accept" else 1
@@ -305,7 +352,7 @@ def main():
                 server = value
                 with tempfile.TemporaryDirectory(prefix="fvapi-bundle-") as temp:
                     fetch(args.api, args.id, temp)
-                    local = local_check(temp, input_value)
+                    local = local_check(temp, input_value, args.container)
                 agree = all(local[key] == server[key] for key in ("verdict", "output", "exit_code"))
                 value = {"server": server, "local": local, "agree": agree}
                 code = 0 if agree else 1
