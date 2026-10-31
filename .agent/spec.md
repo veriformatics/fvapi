@@ -26,7 +26,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [x] 376bc8e `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
 - [x] 8e122af Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
 - [x] 9e7e1d0 Live contact sheet (operator-1) + screening → finalists (6, in Artifacts)
-- [ ] Combination round: 5 u02 × v10 combos, live QA + fixes, user pick = c1-panel-scope
+- [x] ae476e5 Combination round: 5 u02 × v10 combos, live QA + fixes, user pick = c1-panel-scope
 - [ ] Integrate + run every artifact on vflab + webcap every console state
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
 - Deferred queue → `.agent/deferred.md`
