@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>fvapi — Split bench</title><link rel="stylesheet" href="style.css"><script src="app.js" defer></script></head>
+<body>
+<header><div><a href="/">fvapi</a><span>Split bench</span></div><span>vflab / API v0</span></header>
+<main>
+<div class="intro"><h1>Prepare a request. Trace the proof.</h1><p>Search is a service. Re-checking stays with you.</p></div>
+<div class="bench">
+<section class="prepare" aria-labelledby="prepare-title">
+<div class="section-head"><h2 id="prepare-title">Request bench</h2><span id="count"></span></div>
+<div id="catalog" aria-label="Library entries"></div>
+<form id="lookup-form"><label for="query">Specification ID</label><div class="inline"><input id="query" required placeholder="Enter a specification ID"><button>Look up</button></div></form>
+<div class="readout" id="readout" role="status" aria-live="polite"><span>Answer</span><strong id="verdict">Ready</strong><p id="reason">Load an entry to prepare a request.</p><small id="metrics">No request submitted.</small></div>
+<div class="tray-head"><label for="input">Checker input / JSON</label><button id="example" type="button">Load example</button></div>
+<textarea id="input" spellcheck="false" aria-describedby="input-note"></textarea>
+<div class="run-line"><button id="run" type="button">Run check</button><span id="input-note">Edit the input before checking it.</span></div>
+</section>
+<section class="trace" aria-labelledby="trace-title">
+<div class="section-head"><h2 id="trace-title">Proof trace</h2><span id="replay-status"></span></div>
+<p class="trace-caption">Dependencies, not proof steps. Select a file group to inspect it.</p>
+<div id="graph"></div>
+<div id="node-detail" aria-live="polite"></div>
+<details class="text-graph"><summary>Read the graph as text</summary><div id="graph-text"></div></details>
+</section>
+</div>
+<section class="recorder" aria-labelledby="recorder-title"><div class="section-head"><div><h2 id="recorder-title">Chart recorder</h2><p>Open a row to restore its graph and answer.</p></div><div class="inline"><button id="answers" aria-pressed="true">Answers</button><button id="demand" aria-pressed="false">Demand</button></div></div><div id="log"></div></section>
+<details class="package" id="package"><summary>Inspect the proof package <span id="package-id"></span></summary><div id="entry"></div></details>
+<footer>Read the statement. Check the hashes. Re-run the proof.</footer>
+</main>
+</body></html>
