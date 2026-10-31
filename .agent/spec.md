@@ -28,13 +28,12 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - Console direction (user ruling, from 16 variants): combine `u02-instrument-panel` × `v10-dependency-graph`. Keep from u02: verdict readout (a tad smaller than u02's), entry selector + editable input tray, chart-recorder log of answers + demand. Keep from v10: proof graph (entry → artifact → closure files → requirements + toolchain), lookup lighting the matched path + check lighting the checker node, demand misses as dangling nodes. Not kept: u02's enamel instrument material, v10's graph↔list toggle (an accessible text alternative stays, per the UI quality floor). Explored as 5 combinations of differing balance, built in this session; open product questions (lookup multi-key semantics, caller rights on delivered bundles, axiom trust policy, repo LICENSE) wait until the UI is decided.
 ## Tasks
 
-- [x] 648ee7b Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
-- [x] 235bc38 `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
-- [x] 178b641 Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
-- [x] 2c4a3c3 Live contact sheet (operator-1) + screening → finalists (6, in Artifacts)
+- [x] c9f5d59 Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
+- [x] 376bc8e `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
+- [x] 8e122af Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
+- [x] 9e7e1d0 Live contact sheet (operator-1) + screening → finalists (6, in Artifacts)
 - [ ] Combination round: 5 u02 × v10 combos under `prototype/fvapi/console/variants/c*/`, live screenshots, user pick
 - [ ] Integrate + run every artifact on vflab + webcap every console state
-- [ ] Before any push: fold local 4639b60 + 84b0f53 + 728f59c into one commit (tree = 728f59c, neutral message) + replay later commits → no private fixture blob or study id in history; verify `git log -p origin/main..main` clean
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
 - Deferred queue → `.agent/deferred.md`
 
