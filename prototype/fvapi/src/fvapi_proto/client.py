@@ -121,7 +121,7 @@ def replay(directory, allowed_axioms=None):
     root, entry, checks = inspect_bundle(directory)
     allowed = set(DEFAULT_AXIOMS if allowed_axioms is None else allowed_axioms)
     report = {"id": entry["id"], "checks": checks, "status": "fail",
-              "licence": entry["licence"], "bundle_declares": entry["replay"]["expect_axioms"],
+              "licence": entry.get("licence", {}), "bundle_declares": entry["replay"]["expect_axioms"],
               "allowed_axioms": sorted(allowed)}
     if not all(item["pass"] for item in checks):
         return report, 1
@@ -211,7 +211,7 @@ def render(value, command):
     elif command == "fetch":
         print(f"Downloaded {value['id']} to {value['directory']}")
     elif command == "replay":
-        if value["licence"].get("terms"):
+        if value.get("licence", {}).get("terms"):
             print(f"Licence terms: {value['licence']['terms']}")
         print(f"bundle declares: {', '.join(value['bundle_declares']) or 'none'}")
         print(f"Client allows: {', '.join(value['allowed_axioms']) or 'none'}")
@@ -242,7 +242,7 @@ def render(value, command):
             print(f"{entry['id']}  {entry['title']}\n{entry['claim']}")
             print(f"Toolchain: {entry['toolchain']}")
             print(f"Replay: {entry['replay']['status']}")
-            if entry["licence"].get("terms"):
+            if entry.get("licence", {}).get("terms"):
                 print(f"Licence terms: {entry['licence']['terms']}")
             for statement in entry["statements"]:
                 print(f"\n{statement['name']} ({statement['file']}:{statement['line']})\n{statement['text']}")

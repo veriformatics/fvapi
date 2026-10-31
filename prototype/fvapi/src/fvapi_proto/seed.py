@@ -24,7 +24,7 @@ def safe_path(path):
 
 
 DECL = re.compile(r"(?m)^(?:private\s+|protected\s+)?(?:theorem|def|lemma)\s+([^\s{(:]+)")
-SCOPE = re.compile(r"(?m)^(namespace|end)\s+(\S+)")
+SCOPE = re.compile(r"(?m)^(namespace|end)[ \t]+(\S+)")
 
 
 def statement(data, name):
