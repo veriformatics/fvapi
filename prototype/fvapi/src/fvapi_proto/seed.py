@@ -23,12 +23,26 @@ def safe_path(path):
     return result
 
 
+DECL = re.compile(r"(?m)^(?:private\s+|protected\s+)?(?:theorem|def|lemma)\s+([^\s{(:]+)")
+SCOPE = re.compile(r"(?m)^(namespace|end)\s+(\S+)")
+
+
 def statement(data, name):
+    # A declaration's full name = enclosing `namespace` stack + its written (possibly dotted) name;
+    # matching the short name alone would silently pick another namespace's theorem.
     text = data.decode()
-    short = name.rsplit(".", 1)[-1]
-    # Qualified declaration names can themselves contain dots.
-    candidates = (name, short)
-    match = next((m for c in candidates if (m := re.search(r"(?m)^(?:private\s+|protected\s+)?(?:theorem|def|lemma)\s+" + re.escape(c) + r"(?=\s|\{|\(|:)", text))), None)
+    events = sorted([(m.start(), "scope", m) for m in SCOPE.finditer(text)] + [(m.start(), "decl", m) for m in DECL.finditer(text)], key=lambda e: e[0])
+    stack, match = [], None
+    for _, kind, m in events:
+        if kind == "scope":
+            parts = m.group(2).split(".")
+            if m.group(1) == "namespace":
+                stack += parts
+            elif stack[-len(parts):] == parts:
+                del stack[-len(parts):]
+        elif ".".join(stack + [m.group(1)]) == name:
+            match = m
+            break
     if match is None:
         raise ValueError(f"Statement not found: {name}")
     end = text.find(":=", match.end())
