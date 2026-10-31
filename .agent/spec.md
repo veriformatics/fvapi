@@ -28,8 +28,8 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 
 ## Tasks
 
-- [ ] Re-check container: optional published image (Lean 4.35 + bundle deps) the client can run `replay`/`--recheck` in; caller allowlist unchanged
-- [ ] Round-1 console fixes: provisional bundle terms shown (API returns `licence.terms`, console omitted it); bundle axiom list labelled as declared, never trusted; readout label follows the action (lookup ≠ "Input checker")
+- [x] 4f42d3e Re-check container: optional published image (Lean 4.35 + bundle deps) the client can run `replay`/`--recheck` in; caller allowlist unchanged
+- [x] ebb0547 Round-1 console fixes: provisional bundle terms shown (API returns `licence.terms`, console omitted it); bundle axiom list labelled as declared, never trusted; readout label follows the action (lookup ≠ "Input checker")
 - Deferred queue → `.agent/deferred.md`
 
 ## Phase
