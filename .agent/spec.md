@@ -25,13 +25,14 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - Request-time answers use no LLM (subscription terms: Claude Code "Customers may not pay for, resell, or intermediate Claude usage on their end users' behalf"; OpenAI's sign-in terms prohibit "Using one user's subscription to fulfill another user's requests") ⇒ lookups, proved checkers, CPU automation; LLM work = the library's own development, or paid API keys later.
 - Prototype set (user rulings): v0 HTTP+JSON API on vflab + a browser console (catalog, request playground, bundle view, demand log) + `fvapi` CLI client that fetches a bundle and replays it; Python FastAPI via uv; runs + is inspected on vflab alone; real replay for one entry (`vf.contrast-2x2`, a factorial contrast checker importing `Std` alone), the fva seeds = recorded stubs labelled as such; console = full variant fan-out (≥10 conventional + ≥5 unconventional).
 - Library content stays out of git (repo `veriformatics/fvapi` = public): code + formats are committed; entries, proofs, seed metadata + study details reach vflab's store through `seed.py` from local sources alone (seed manifest `prototype/fvapi/seed.local.json`, gitignored); fixtures + examples in git = synthetic, or drawn from public fva (Apache-2.0).
-
+- Console direction (user ruling, from 16 variants): combine `u02-instrument-panel` × `v10-dependency-graph`. Keep from u02: verdict readout (a tad smaller than u02's), entry selector + editable input tray, chart-recorder log of answers + demand. Keep from v10: proof graph (entry → artifact → closure files → requirements + toolchain), lookup lighting the matched path + check lighting the checker node, demand misses as dangling nodes. Not kept: u02's enamel instrument material, v10's graph↔list toggle (an accessible text alternative stays, per the UI quality floor). Explored as 5 combinations of differing balance, built in this session; open product questions (lookup multi-key semantics, caller rights on delivered bundles, axiom trust policy, repo LICENSE) wait until the UI is decided.
 ## Tasks
 
 - [x] 648ee7b Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
 - [x] 235bc38 `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
 - [x] 178b641 Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
 - [x] 2c4a3c3 Live contact sheet (operator-1) + screening → finalists (6, in Artifacts)
+- [ ] Combination round: 5 u02 × v10 combos under `prototype/fvapi/console/variants/c*/`, live screenshots, user pick
 - [ ] Integrate + run every artifact on vflab + webcap every console state
 - [ ] Before any push: fold local 4639b60 + 84b0f53 + 728f59c into one commit (tree = 728f59c, neutral message) + replay later commits → no private fixture blob or study id in history; verify `git log -p origin/main..main` clean
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
