@@ -18,3 +18,5 @@ __pycache__/
 prototype/fvapi/store/
 prototype/fvapi/out/
 prototype/fvapi/seed.local.json
+*.egg-info/
+.env
