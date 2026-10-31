@@ -21,9 +21,10 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 
 ## Tasks
 
-- [ ] Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
-- [ ] `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
-- [ ] Console fan-out: ≥15 variants under `prototype/fvapi/console/variants/`, contact sheet, finalists
+- [x] 648ee7b Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
+- [x] 235bc38 `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
+- [x] 178b641 Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
+- [ ] Live contact sheet (operator-1) + screening → finalists
 - [ ] Integrate + run every artifact on vflab + webcap every console state
 - [ ] Reword local commit 4639b60's message (names the study entry id) before any push: message filter over main, worktree branches rebased
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
