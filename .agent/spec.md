@@ -28,17 +28,10 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 
 ## Tasks
 
-- [x] c9f5d59 Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
-- [x] 376bc8e `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
-- [x] 8e122af Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
-- [x] 9e7e1d0 Live contact sheet (operator-1) + screening → finalists (6, in Artifacts)
-- [x] ae476e5 Combination round: 5 u02 × v10 combos, live QA + fixes, user pick = c1-panel-scope
-- [ ] Integrate + run every artifact on vflab + webcap every console state
-- [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
-- [x] 93e38e5 Rulings into the prototype: lookup all-keys-agree, provisional bundle terms, client-side axiom allowlist (builder-3)
-- [ ] ITERATE: re-check container (optional, published image) + idle-work stub in the console
+- [ ] Re-check container: optional published image (Lean 4.35 + bundle deps) the client can run `replay`/`--recheck` in; caller allowlist unchanged
+- [ ] Idle-work stub in the console: a demand item visibly moves queued → being proved → added to library (fake worker, labelled as a stub)
 - Deferred queue → `.agent/deferred.md`
 
 ## Phase
 
-PROTOTYPE — whole product
+ITERATE — whole product
