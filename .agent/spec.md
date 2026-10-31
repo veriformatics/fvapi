@@ -35,7 +35,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [x] ae476e5 Combination round: 5 u02 × v10 combos, live QA + fixes, user pick = c1-panel-scope
 - [ ] Integrate + run every artifact on vflab + webcap every console state
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
-- [ ] Rulings into the prototype: lookup all-keys-agree, provisional bundle terms, client-side axiom allowlist (builder-3)
+- [x] 93e38e5 Rulings into the prototype: lookup all-keys-agree, provisional bundle terms, client-side axiom allowlist (builder-3)
 - [ ] ITERATE: re-check container (optional, published image) + idle-work stub in the console
 - Deferred queue → `.agent/deferred.md`
 
