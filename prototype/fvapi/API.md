@@ -18,7 +18,7 @@ Fields (`fixtures/v0/catalog-vf.contrast-2x2.json`):
 - `source` = `{repo, commit, paths[]}`; `licence` = `{spdx, third_party[]: {name, spdx, source}}`.
 - `closure[]` = `{path, sha256, bytes}` — files the bundle delivers.
 - `replay` = `{status: real | recorded, command, expect_axioms[], transcript | null, note}`. `recorded` = PROTOTYPE stub: transcript copied from an earlier run at `source.commit`, not re-run by fvapi.
-- `check` = `{input_schema, example_input, exit_codes}` | `null` — present on entries the server can run on caller input.
+- `check` = `{input_schema, example_input, exit_codes, recheck}` | `null` — present on entries the server can run on caller input. `recheck` = `{build: [[argv]…], run: [argv with literal "{input}"]}`, run in the extracted bundle dir with `LEAN_PATH` = bundle dir + `lean --print-libdir`; the client's `--recheck` uses it alone (no entry file names in client code).
 
 ## Routes
 
