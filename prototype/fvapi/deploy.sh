@@ -32,7 +32,7 @@ fi
 "$HOME/.elan/bin/elan" toolchain install leanprover/lean4:v4.35.0
 "$HOME/.elan/bin/elan" default leanprover/lean4:v4.35.0
 BOOTSTRAP
-rsync -az --exclude .venv --exclude store --exclude out --exclude seed.local.json "$HERE/" "$TARGET:fvapi-proto/"
+rsync -az --delete --exclude .venv --exclude store --exclude out --exclude seed.local.json "$HERE/" "$TARGET:fvapi-proto/"
 (cd "$HERE" && uv run fvapi-seed --manifest "$MANIFEST" --store "$TEMP/store")
 # Logs survive seed/deploy; a second deployment must not erase request history.
 rsync -az --exclude demand.jsonl --exclude answers.jsonl "$TEMP/store/" "$TARGET:/srv/data/fvapi/"
