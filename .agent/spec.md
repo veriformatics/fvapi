@@ -15,6 +15,12 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
   - `u02-instrument-panel` — analyser front panel; the verdict readout = the bold element.
   - `v07-terminal` — keyboard-first terminal speaking the `fvapi` CLI verbs.
   - `v08-certificate-pages` — every entry + answer = a printable datasheet / certificate.
+- Console combinations (user direction u02 × v10, live at `http://192.168.40.241:8441/console/<name>/`, `?state=<state>` drives each state; live screenshots `.scratch/` only):
+  - `c1-panel-scope` — panel-led: selector, input tray + compact readout centre, graph in an inset "scope", recorder strip below.
+  - `c2-graph-docked` — graph-led: whole-library graph with shared requirements as hubs, control dock at the side; narrow screens show the selected entry's chain.
+  - `c3-split-bench` — equal split: controls left, selected entry's graph right, restorable recorder strip below.
+  - `c4-schematic` — fused: one signal-flow drawing from input tray through statement, closure + requirements to the verdict terminal; a miss = an unconnected input pin.
+  - `c5-recorder-spine` — recorder-led: every request = a row on one strip; the newest expands into its verdict + touched graph slice.
 
 ## Decisions
 
