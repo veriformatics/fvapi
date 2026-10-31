@@ -13,6 +13,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT / "src" / "fvapi_proto"))
+from work import work  # noqa: E402  stdlib-only module shared with server.py
 FIX = ROOT / "fixtures" / "v0"
 VARIANTS = ROOT / "console" / "variants"
 MISSES = []
@@ -78,10 +80,15 @@ class Handler(SimpleHTTPRequestHandler):
             self.path = p[len("/console"):]
             self.directory = str(VARIANTS)
             super().do_GET()
-        elif p == "/v0/demand":
+        elif p in ("/v0/demand", "/v0/work"):
             rows = MISSES[::-1] + fixture("demand")["misses"]
             counts = Counter(f"{k}:{v}" for row in rows for k, v in row["query"].items())
-            self.send_json(200, {"misses": rows, "by_key": [{"key": key, "count": count} for key, count in counts.most_common()]})
+            by_key = [{"key": key, "count": count} for key, count in counts.most_common()]
+            if p == "/v0/work":
+                state = dict(part.partition("=")[::2] for part in self.path.partition("?")[2].split("&") if part).get("state")
+                self.send_json(200, work(by_key, force=state))
+            else:
+                self.send_json(200, {"misses": rows, "by_key": by_key})
         elif p in ("/v0/health", "/v0/catalog", "/v0/answers"):
             self.send_json(200, fixture(p.rsplit("/", 1)[1]))
         elif p.startswith("/v0/catalog/") and (FIX / f"catalog-{p.rsplit('/', 1)[1]}.json").is_file():
