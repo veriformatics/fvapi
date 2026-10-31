@@ -1,0 +1,22 @@
+{
+  "hit": false,
+  "miss_id": "m-000002",
+  "logged": true,
+  "query": {
+    "spec_id": "vf.contrast-2x2",
+    "artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "mismatch": [
+    {
+      "key": "spec_id",
+      "value": "vf.contrast-2x2",
+      "matched_entry": "vf.contrast-2x2"
+    },
+    {
+      "key": "artifact_sha256",
+      "value": "0000000000000000000000000000000000000000000000000000000000000000",
+      "matched_entry": null
+    }
+  ],
+  "detail": "spec_id vf.contrast-2x2 matches vf.contrast-2x2; but artifact_sha256 000000000000… matches no entry. All supplied keys must match the same entry. The miss is logged as demand; no agent works on single requests."
+}
