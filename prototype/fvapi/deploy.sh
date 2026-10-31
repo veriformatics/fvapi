@@ -17,6 +17,10 @@ trap 'rm -rf "$TEMP"' EXIT
 set -euo pipefail
 mkdir -p "$HOME/.local/bin" "$HOME/fvapi-proto" /srv/data/fvapi
 cd "$HOME/fvapi-proto"
+if ! command -v podman >/dev/null; then
+    sudo apt-get update
+    sudo apt-get install -y podman uidmap
+fi
 DOWNLOADS=$(mktemp -d "$HOME/.local/fvapi-install.XXXXXX")
 trap 'rm -rf "$DOWNLOADS"' EXIT
 if ! test -x "$HOME/.local/bin/uv"; then
@@ -41,6 +45,7 @@ set -euo pipefail
 export PATH="$HOME/.local/bin:$HOME/.elan/bin:$PATH"
 cd "$HOME/fvapi-proto"
 uv sync --locked
+bash recheck/build.sh
 mkdir -p console/variants /srv/data/fvapi/checkers
 # Build every executable entry generically. Its source lives only in the private store.
 uv run python - <<'PY'
