@@ -31,7 +31,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [x] 648ee7b Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
 - [x] 235bc38 `fvapi` CLI client + real replay of `vf.contrast-2x2` (`src/fvapi_proto/client.py`)
 - [x] 178b641 Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
-- [ ] Live contact sheet (operator-1) + screening → finalists (6, in Artifacts)
+- [x] 2c4a3c3 Live contact sheet (operator-1) + screening → finalists (6, in Artifacts)
 - [ ] Integrate + run every artifact on vflab + webcap every console state
 - [ ] Before any push: fold local 4639b60 + 84b0f53 + 728f59c into one commit (tree = 728f59c, neutral message) + replay later commits → no private fixture blob or study id in history; verify `git log -p origin/main..main` clean
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
