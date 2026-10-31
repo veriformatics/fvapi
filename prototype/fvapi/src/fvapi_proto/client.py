@@ -114,9 +114,15 @@ def lean_version(root, toolchain, checks):
     return ok
 
 
-def replay(directory):
+DEFAULT_AXIOMS = ("propext", "Classical.choice", "Quot.sound")
+
+
+def replay(directory, allowed_axioms=None):
     root, entry, checks = inspect_bundle(directory)
-    report = {"id": entry["id"], "checks": checks, "status": "fail"}
+    allowed = set(DEFAULT_AXIOMS if allowed_axioms is None else allowed_axioms)
+    report = {"id": entry["id"], "checks": checks, "status": "fail",
+              "licence": entry["licence"], "bundle_declares": entry["replay"]["expect_axioms"],
+              "allowed_axioms": sorted(allowed)}
     if not all(item["pass"] for item in checks):
         return report, 1
     replay_spec = entry["replay"]
@@ -134,10 +140,13 @@ def replay(directory):
     report["transcript"] = result.stdout
     axioms = {}
     for match in re.finditer(r"'([^']+)' (?:depends on axioms:\s*\[([^\]]*)\]|(does not depend on any axioms))", result.stdout):
-        axioms[match[1]] = [a.strip() for a in (match[2] or "").split(",") if a.strip()]
+        dependencies = [a.strip() for a in (match[2] or "").split(",") if a.strip()]
+        axioms[match[1]] = sorted(set(axioms.get(match[1], [])) | set(dependencies))
     for name, dependencies in axioms.items():
-        checks.append({"pass": set(dependencies) <= set(replay_spec["expect_axioms"]),
-                       "check": "axioms", "detail": name, "axioms": dependencies})
+        unexpected = sorted(set(dependencies) - allowed)
+        checks.append({"pass": not unexpected, "check": "axioms",
+                       "detail": name + (f"; outside client allowlist: {', '.join(unexpected)}" if unexpected else ""),
+                       "axioms": dependencies})
     for statement in entry["statements"]:
         name = statement["name"]
         checks.append({"pass": name in axioms, "check": "axiom audit present", "detail": name})
@@ -202,14 +211,16 @@ def render(value, command):
     elif command == "fetch":
         print(f"Downloaded {value['id']} to {value['directory']}")
     elif command == "replay":
+        if value["licence"].get("terms"):
+            print(f"Licence terms: {value['licence']['terms']}")
+        print(f"bundle declares: {', '.join(value['bundle_declares']) or 'none'}")
+        print(f"Client allows: {', '.join(value['allowed_axioms']) or 'none'}")
         for item in value["checks"]:
             print(f"{'PASS' if item['pass'] else 'FAIL'} {item['check']} {item['detail']}")
             if "text" in item:
                 print(f"  {item['file']}:{item['line']}\n{item['text']}")
             if "axioms" in item:
-                name = item["detail"]
-                print(f"  '{name}' depends on axioms: [{', '.join(item['axioms'])}]" if item["axioms"]
-                      else f"  '{name}' does not depend on any axioms")
+                print(f"  Reported axioms: [{', '.join(item['axioms'])}]")
             if "fix" in item:
                 print(f"  {item['fix']}")
         if value["status"] == "recorded":
@@ -231,6 +242,8 @@ def render(value, command):
             print(f"{entry['id']}  {entry['title']}\n{entry['claim']}")
             print(f"Toolchain: {entry['toolchain']}")
             print(f"Replay: {entry['replay']['status']}")
+            if entry["licence"].get("terms"):
+                print(f"Licence terms: {entry['licence']['terms']}")
             for statement in entry["statements"]:
                 print(f"\n{statement['name']} ({statement['file']}:{statement['line']})\n{statement['text']}")
         else:
@@ -250,14 +263,15 @@ def parser():
         if name in ("show", "fetch", "check"):
             command.add_argument("id", help="Entry ID")
         if name == "lookup":
-            query = command.add_mutually_exclusive_group(required=True)
-            query.add_argument("--spec", dest="spec_id")
-            query.add_argument("--sha256", dest="artifact_sha256")
-            query.add_argument("--statement")
+            command.add_argument("--spec", dest="spec_id")
+            command.add_argument("--sha256", dest="artifact_sha256")
+            command.add_argument("--statement")
         elif name == "fetch":
             command.add_argument("-o", "--output", required=True, help="New or empty output directory")
         elif name == "replay":
             command.add_argument("directory", help="Directory with manifest.json")
+            command.add_argument("--axioms", default=os.environ.get("FVAPI_AXIOMS"),
+                                 help="Allowed axioms, comma-separated (default: FVAPI_AXIOMS or propext,Classical.choice,Quot.sound). An empty value allows none.")
         elif name == "check":
             command.add_argument("input", help="Input JSON file")
             command.add_argument("--recheck", action="store_true", help="Build and run the local checker.")
@@ -275,11 +289,14 @@ def main():
         elif args.command == "lookup":
             query = {key: getattr(args, key) for key in ("spec_id", "artifact_sha256", "statement")
                      if getattr(args, key) is not None}
+            if not query:
+                raise ClientError("Supply --spec, --sha256 or --statement. Supplied keys must match the same entry.")
             value = request(args.api, "/v0/lookup", query)
         elif args.command == "fetch":
             value = fetch(args.api, args.id, args.output)
         elif args.command == "replay":
-            value, code = replay(args.directory)
+            allowed = None if args.axioms is None else [a.strip() for a in args.axioms.split(",") if a.strip()]
+            value, code = replay(args.directory, allowed)
         else:
             input_value = json.loads(Path(args.input).read_text())
             value = request(args.api, "/v0/checks/" + quote(args.id, safe=""), input_value)

@@ -39,7 +39,41 @@ async def validation_error(request, exc):
 
 
 def entries():
-    return [json.loads(p.read_text()) for p in sorted((STORE / "entries").glob("*/entry.json"))]
+    result = []
+    for path in sorted((STORE / "entries").glob("*/entry.json")):
+        item = json.loads(path.read_text())
+        if item["licence"]["spdx"].startswith("LicenseRef-Veriformatics"):
+            item["licence"]["terms"] = "provisional: internal evaluation only; final terms set before outside delivery"
+        result.append(item)
+    return result
+
+
+def lookup_matches(query, catalog):
+    normal = lambda text: " ".join(text.split())
+    matches = []
+    for key in ("spec_id", "artifact_sha256", "statement"):
+        if key not in query:
+            continue
+        value = query[key]
+        found = []
+        if isinstance(value, str) and value.strip():
+            for item in catalog:
+                artifact = item["subject"].get("artifact") or {}
+                hit = (key == "spec_id" and value == item["id"]) or (key == "artifact_sha256" and value == artifact.get("sha256")) or (key == "statement" and any(normal(value) == normal(s["text"]) for s in item["statements"]))
+                if hit:
+                    found.append(item["id"])
+        matches.append((key, value, found))
+    common = set.intersection(*(set(ids) for _, _, ids in matches)) if matches else set()
+    return matches, next((item for item in catalog if item["id"] in common), None)
+
+
+def lookup_miss(matches):
+    rows, descriptions = [], []
+    for key, value, ids in matches:
+        rows.append({"key": key, "value": value, "matched_entry": ids[0] if ids else None})
+        shown = value[:12] + "…" if key == "artifact_sha256" and isinstance(value, str) and len(value) > 12 else value
+        descriptions.append(f"{key} {shown} matches {', '.join(ids) if ids else 'no entry'}")
+    return {"mismatch": rows, "detail": "; but ".join(descriptions) + ". All supplied keys must match the same entry. The miss is logged as demand; no agent works on single requests."}
 
 
 def entry(entry_id):
@@ -93,19 +127,13 @@ def lookup(query: dict):
     keys = ("spec_id", "artifact_sha256", "statement")
     if not any(isinstance(query.get(k), str) and query[k].strip() for k in keys):
         return error(422, "empty_query", "Supply spec_id, artifact_sha256 or statement.")
-    normal = lambda text: " ".join(text.split())
-    for e in entries():
-        for k in keys:
-            value = query.get(k)
-            if not isinstance(value, str) or not value:
-                continue
-            artifact = e["subject"].get("artifact") or {}
-            hit = (k == "spec_id" and value == e["id"]) or (k == "artifact_sha256" and value == artifact.get("sha256")) or (k == "statement" and any(normal(value) == normal(s["text"]) for s in e["statements"]))
-            if hit:
-                answer = append("answers", "a", {"kind": "lookup", "entry_id": e["id"]})
-                return {"hit": True, "answer_id": answer, "entry_id": e["id"], "matched_on": k, "entry": e, "bundle": f"/v0/bundles/{e['id']}.tar.gz"}
-    miss = append("demand", "m", {"query": query})
-    return JSONResponse({"hit": False, "miss_id": miss, "logged": True, "query": query, "detail": "No library entry matches. The miss is logged as demand; no agent works on single requests."}, status_code=404)
+    matches, e = lookup_matches(query, entries())
+    if e:
+        answer = append("answers", "a", {"kind": "lookup", "entry_id": e["id"]})
+        return {"hit": True, "answer_id": answer, "entry_id": e["id"], "matched_on": matches[0][0], "entry": e, "bundle": f"/v0/bundles/{e['id']}.tar.gz"}
+    mismatch = lookup_miss(matches)
+    miss = append("demand", "m", {"query": query, **mismatch})
+    return JSONResponse({"hit": False, "miss_id": miss, "logged": True, "query": query, **mismatch}, status_code=404)
 
 
 @app.get("/v0/bundles/{entry_id}.tar.gz")

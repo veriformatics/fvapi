@@ -15,7 +15,7 @@ Fields (`fixtures/v0/catalog-vf.contrast-2x2.json`):
 - `statements[]` = `{name, file, line, text}` — the Lean statement(s) the caller must read + match (Comparator-style challenge).
 - `subject` = `{name, version, artifact: {name, sha256, bytes} | null}` — version proofs are keyed by artifact sha256.
 - `toolchain` (`leanprover/lean4:v4.35.0`), `requires[]` (`Std` | `mathlib@v4.35.0` | `fva@<sha>`).
-- `source` = `{repo, commit, paths[]}`; `licence` = `{spdx, third_party[]: {name, spdx, source}}`.
+- `source` = `{repo, commit, paths[]}`; `licence` = `{spdx, third_party[]: {name, spdx, source}, terms?}`. The server adds `terms = "provisional: internal evaluation only; final terms set before outside delivery"` when `spdx` starts with `LicenseRef-Veriformatics`, including catalog detail, lookup entries and bundle manifests. This provisional notice does not change third-party licences.
 - `closure[]` = `{path, sha256, bytes}` — files the bundle delivers.
 - `replay` = `{status: real | recorded, command, expect_axioms[], transcript | null, note}`. `recorded` = PROTOTYPE stub: transcript copied from an earlier run at `source.commit`, not re-run by fvapi.
 - `check` = `{input_schema, example_input, exit_codes, recheck}` | `null` — present on entries the server can run on caller input. `recheck` = `{build: [[argv]…], run: [argv with literal "{input}"]}`, run in the extracted bundle dir with `LEAN_PATH` = bundle dir + `lean --print-libdir`; the client's `--recheck` uses it alone (no entry file names in client code).
@@ -35,13 +35,15 @@ Fields (`fixtures/v0/catalog-vf.contrast-2x2.json`):
 | `GET /` | — | HTML index of console variants | — |
 | `GET /console/{variant}/` | — | static files of `console/variants/{variant}/` | 404 |
 
-Lookup match: `spec_id` = entry `id`; `artifact_sha256` = `subject.artifact.sha256`; `statement` = whitespace-normalised equality with any `statements[].text`. First hit wins.
+Lookup match: `spec_id` = entry `id`; `artifact_sha256` = `subject.artifact.sha256`; `statement` = whitespace-normalised equality with any `statements[].text`. All supplied keys must match the same entry. A key matching nothing, or keys matching different entries → 404 miss + demand log. `detail` explains each key's match in plain words; `mismatch[]` = `{key, value, matched_entry: <id> | null}` for each supplied key (`lookup-conflict.json`). Shared artifact/statement values may match several entries: a hit requires an entry common to all keys; the first catalog entry in that intersection wins. `matched_entry` names the first catalog match for that key; `detail` lists all matches. `matched_on` on hits stays the first supplied key (compatibility), with all keys checked.
 
 Checks: server runs the entry's compiled checker on the input (temp dir, 10 s timeout, CPU only) → `verdict` (`accept|reject`), raw checker `output` JSON, `exit_code`, `elapsed_ms`, `ran_on`, plus `recheck` = how the caller re-runs the same checker locally from the bundle.
 
 ## Client (`fvapi` CLI)
 
-`fvapi [--api URL] catalog | show ID | lookup (--spec ID | --sha256 H | --statement TEXT) | fetch ID -o DIR | replay DIR | check ID INPUT.json [--recheck]`
-- `replay DIR`: verify every closure sha256 vs manifest → statement text present byte-identical at `file:line` → `real`: run `replay.command` in DIR, parse `#print axioms` lines, every axiom ∈ `expect_axioms` → PASS/FAIL table, rc 0/1; `recorded`: print `RECORDED (not re-run)` + transcript, rc 3.
+`fvapi [--api URL] catalog | show ID | lookup [--spec ID] [--sha256 H] [--statement TEXT] | fetch ID -o DIR | replay DIR [--axioms a,b,c] | check ID INPUT.json [--recheck]`
+- `lookup`: supply at least one key. All supplied keys must match the same entry.
+- `show` + `replay`: print `licence.terms` when present.
+- `replay DIR`: verify every closure sha256 vs manifest → statement text present byte-identical at `file:line` → `real`: run `replay.command` in DIR, parse `#print axioms` lines, require an audit for every statement and every reported axiom in the **client-owned allowlist** → PASS/FAIL table, rc 0/1. Default allowlist = `{propext, Classical.choice, Quot.sound}`. `--axioms a,b,c` replaces it; otherwise `FVAPI_AXIOMS` replaces it when set. An empty override allows no axioms. A disallowed axiom → FAIL rc 1 naming it. The bundle's `expect_axioms` prints as `bundle declares: …` only; it never widens the client's list. `recorded`: print `RECORDED (not re-run)` + transcript, rc 3.
 - `check --recheck`: server verdict, then fetch + build the checker locally + re-run it on the same input; agree → rc 0, disagree → rc 1.
 - PROTOTYPE shortcut: replay runs `lean` unsandboxed (bundle = our own entry). IMPLEMENT: Comparator-style sandbox.

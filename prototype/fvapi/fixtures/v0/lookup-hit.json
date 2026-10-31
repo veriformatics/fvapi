@@ -35,7 +35,8 @@
     },
     "licence": {
       "spdx": "LicenseRef-Veriformatics-Delivered",
-      "third_party": []
+      "third_party": [],
+      "terms": "provisional: internal evaluation only; final terms set before outside delivery"
     },
     "closure": [
       {
