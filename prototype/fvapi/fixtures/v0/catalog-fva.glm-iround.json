@@ -1,0 +1,64 @@
+{
+  "id": "fva.glm-iround",
+  "title": "GLM 1.0.3 iround breaks round-to-nearest",
+  "kind": "refutation",
+  "claim": "The shipped glm::iround<double> returns 1 on 0.49999999999999994, whose nearest integer is 0.",
+  "statements": [
+    {
+      "name": "Subjects.GlmIround.iround_breaks_holds",
+      "file": "FVATest/Subjects/GlmIround/Proof.lean",
+      "line": 28,
+      "text": "theorem iround_breaks_holds : Subjects.GlmIround.iround_breaks"
+    }
+  ],
+  "subject": {
+    "name": "glm-iround.wasm",
+    "version": "GLM 1.0.3",
+    "artifact": {
+      "name": "glm-iround.wasm",
+      "sha256": "eded7ae1f3c1ba100d618a98f8f86eb690577a8358e47e31f2039eb2f4a75a3a",
+      "bytes": 66
+    }
+  },
+  "toolchain": "leanprover/lean4:v4.35.0",
+  "requires": [
+    "mathlib@v4.35.0",
+    "fva@56a4537"
+  ],
+  "source": {
+    "repo": "https://github.com/veriformatics/fva",
+    "commit": "56a4537",
+    "paths": [
+      "FVATest/Subjects/GlmIround/Spec.lean",
+      "FVATest/Subjects/GlmIround/Proof.lean"
+    ]
+  },
+  "licence": {
+    "spdx": "Apache-2.0",
+    "third_party": []
+  },
+  "closure": [
+    {
+      "path": "FVATest/Subjects/GlmIround/Spec.lean",
+      "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "bytes": 1500
+    },
+    {
+      "path": "FVATest/Subjects/GlmIround/Proof.lean",
+      "sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "bytes": 1200
+    }
+  ],
+  "replay": {
+    "status": "recorded",
+    "command": "lake env lean FVATest/Subjects/GlmIround/Proof.lean",
+    "expect_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "transcript": null,
+    "note": "recorded stub: not re-run by fvapi; fva builds this module at 56a4537"
+  },
+  "check": null
+}

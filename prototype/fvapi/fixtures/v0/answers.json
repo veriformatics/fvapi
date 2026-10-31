@@ -1,0 +1,17 @@
+{
+  "answers": [
+    {
+      "answer_id": "a-000002",
+      "at": "2026-10-31T09:06:00Z",
+      "kind": "check",
+      "entry_id": "vf.contrast-2x2",
+      "verdict": "accept"
+    },
+    {
+      "answer_id": "a-000001",
+      "at": "2026-10-31T09:04:00Z",
+      "kind": "lookup",
+      "entry_id": "vf.contrast-2x2"
+    }
+  ]
+}

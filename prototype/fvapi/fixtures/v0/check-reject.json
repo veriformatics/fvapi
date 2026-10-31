@@ -1,0 +1,19 @@
+{
+  "verdict": "reject",
+  "output": {
+    "schema": "example.contrast-check.v1",
+    "accepted": false,
+    "reason": "incorrect_weights",
+    "mode": "factorial"
+  },
+  "exit_code": 2,
+  "elapsed_ms": 4,
+  "ran_on": "vflab",
+  "answer_id": "a-000003",
+  "entry_id": "vf.contrast-2x2",
+  "input_sha256": "(sha256 of the submitted bytes)",
+  "recheck": {
+    "bundle": "/v0/bundles/vf.contrast-2x2.tar.gz",
+    "command": "fvapi check vf.contrast-2x2 input.json --recheck"
+  }
+}

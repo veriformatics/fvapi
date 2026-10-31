@@ -1,0 +1,118 @@
+{
+  "id": "vf.contrast-2x2",
+  "title": "2×2 factorial contrast checker (illustrative fixture)",
+  "kind": "checker",
+  "claim": "A named contrast matrix passes the checker exactly when its weights equal the proved compilation of the design's contrasts.",
+  "statements": [
+    {
+      "name": "Example.compile_sound",
+      "file": "Contrast.lean",
+      "line": 12,
+      "text": "theorem compile_sound (b : Basis) (c x : Coeffs) :\n    weigh c (b.apply x) = weigh (compile b c) x"
+    }
+  ],
+  "subject": {
+    "name": "2×2 factorial design",
+    "version": "fixture",
+    "artifact": null
+  },
+  "toolchain": "leanprover/lean4:v4.35.0",
+  "requires": [
+    "Std"
+  ],
+  "source": {
+    "repo": "(private library)",
+    "commit": "0000000",
+    "paths": [
+      "Contrast.lean",
+      "Checker.lean"
+    ]
+  },
+  "licence": {
+    "spdx": "LicenseRef-Veriformatics-Delivered",
+    "third_party": []
+  },
+  "closure": [
+    {
+      "path": "Contrast.lean",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "bytes": 7000
+    },
+    {
+      "path": "Checker.lean",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "bytes": 8000
+    }
+  ],
+  "replay": {
+    "status": "real",
+    "command": "lean Contrast.lean && lean -o Contrast.olean Contrast.lean && LEAN_PATH=.:$LEAN_PATH lean Checker.lean",
+    "expect_axioms": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "transcript": null,
+    "note": "Std only; replays in seconds."
+  },
+  "check": {
+    "input_schema": "example.contrast-request.v1",
+    "example_input": {
+      "schema": "example.contrast-request.v1",
+      "mode": "factorial",
+      "contrast_names": [
+        "a_alone",
+        "b_in_a0",
+        "b_in_a1",
+        "a_in_b1",
+        "interaction"
+      ],
+      "rows": [
+        {
+          "name": "(Intercept)",
+          "weights": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "a",
+          "weights": [
+            1,
+            0,
+            0,
+            1,
+            0
+          ]
+        },
+        {
+          "name": "b",
+          "weights": [
+            0,
+            1,
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "name": "a_b",
+          "weights": [
+            0,
+            0,
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    "exit_codes": {
+      "0": "accept",
+      "2": "reject"
+    }
+  }
+}

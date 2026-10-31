@@ -1,0 +1,9 @@
+{
+  "service": "fvapi",
+  "version": "0-prototype",
+  "host": "vflab",
+  "entries": 5,
+  "store": "/srv/data/fvapi",
+  "lean": "Lean (version 4.35.0, x86_64-unknown-linux-gnu)",
+  "started_at": "2026-10-31T09:00:00Z"
+}
