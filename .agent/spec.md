@@ -20,6 +20,12 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - Prototype set (user rulings): v0 HTTP+JSON API on vflab + a browser console (catalog, request playground, bundle view, demand log) + `fvapi` CLI client that fetches a bundle and replays it; Python FastAPI via uv; runs + is inspected on vflab alone; real replay for one entry (`vf.contrast-2x2`, a factorial contrast checker importing `Std` alone), the fva seeds = recorded stubs labelled as such; console = full variant fan-out (≥10 conventional + ≥5 unconventional).
 - Library content stays out of git (repo `veriformatics/fvapi` = public): code + formats are committed; entries, proofs, seed metadata + study details reach vflab's store through `seed.py` from local sources alone (seed manifest `prototype/fvapi/seed.local.json`, gitignored); fixtures + examples in git = synthetic, or drawn from public fva (Apache-2.0).
 - Console direction (user ruling, from 16 variants): combine `u02-instrument-panel` × `v10-dependency-graph`. Keep from u02: verdict readout (a tad smaller than u02's), entry selector + editable input tray, chart-recorder log of answers + demand. Keep from v10: proof graph (entry → artifact → closure files → requirements + toolchain), lookup lighting the matched path + check lighting the checker node, demand misses as dangling nodes. Not kept: u02's enamel instrument material, v10's graph↔list toggle (an accessible text alternative stays, per the UI quality floor). Explored as 5 combinations; user picked `c1-panel-scope` (panel-led: selector, input tray + compact verdict readout, proof graph in an inset scope, recorder strip below). Open product questions (lookup multi-key semantics, caller rights on delivered bundles, axiom trust policy, repo LICENSE) wait until the UI is decided.
+- Lookup (user ruling): every supplied key (`spec_id`, `artifact_sha256`, `statement`) must point to the same entry; any disagreement = a miss logged as demand, naming the mismatch (a proof about another build never answers).
+- Delivered-bundle terms (user ruling): decided later; until then every private-library bundle states "provisional: internal evaluation only", and final terms are set before any outside caller receives a bundle.
+- Re-check trust (user ruling): the API stays one request → answer + bundle; the optional re-check runs caller-side in the open-source client against a client-held axiom allowlist (default `propext`, `Classical.choice`, `Quot.sound`, caller-editable); the bundle's own axiom list is displayed, never trusted; plus an optional published container for a re-check independent of the caller's Lean install.
+- Idle library work (user ruling): shown in the next ITERATE round as a visible stub (a demand item moving queued → being proved → added to the library); the real loop = IMPLEMENT.
+- Code licence (user ruling): Apache-2.0 (`LICENSE`, canonical text); library content stays private and unlicensed.
+
 ## Tasks
 
 - [x] c9f5d59 Server + store + seed + deploy to vflab (`prototype/fvapi/src/fvapi_proto/{server,seed}.py`, `deploy.sh`)
@@ -29,6 +35,8 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [x] ae476e5 Combination round: 5 u02 × v10 combos, live QA + fixes, user pick = c1-panel-scope
 - [ ] Integrate + run every artifact on vflab + webcap every console state
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
+- [ ] Rulings into the prototype: lookup all-keys-agree, provisional bundle terms, client-side axiom allowlist (builder-3)
+- [ ] ITERATE: re-check container (optional, published image) + idle-work stub in the console
 - Deferred queue → `.agent/deferred.md`
 
 ## Phase
