@@ -19,4 +19,35 @@ prototype/fvapi/store/
 prototype/fvapi/out/
 prototype/fvapi/seed.local.json
 *.egg-info/
+# Python build + tool output
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+# local environment; templates remain shareable
 .env
+.env.*
+!.env.example
+!.env.sample
+.envrc
+# OS + editor state
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
