@@ -26,7 +26,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [x] 178b641 Console fan-out: 16 variants under `prototype/fvapi/console/variants/`
 - [ ] Live contact sheet (operator-1) + screening → finalists
 - [ ] Integrate + run every artifact on vflab + webcap every console state
-- [ ] Reword local commit 4639b60's message (names the study entry id) before any push: message filter over main, worktree branches rebased
+- [ ] Before any push: fold local 4639b60 + 84b0f53 + 728f59c into one commit (tree = 728f59c, neutral message) + replay later commits → no private fixture blob or study id in history; verify `git log -p origin/main..main` clean
 - [ ] Navigator pass + closing review → fixes, `.agent/deferred.md` rows, `Phase: ITERATE`
 - Deferred queue → `.agent/deferred.md`
 
