@@ -10,3 +10,11 @@ ops/vflab/test/uefi/
 ops/vflab/test/*.log
 ops/vflab/test/known_hosts
 ops/vflab/vflab_known_hosts
+.claude/settings.local.json
+# prototype: Python env + caches, local store, fetched bundles, screenshots
+.venv/
+__pycache__/
+*.pyc
+prototype/fvapi/store/
+prototype/fvapi/out/
+prototype/fvapi/seed.local.json

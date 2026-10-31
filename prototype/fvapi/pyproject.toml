@@ -1,0 +1,18 @@
+[project]
+name = "fvapi-proto"
+version = "0.0.0"
+description = "fvapi PROTOTYPE: v0 API (API.md) + fvapi CLI client; disposable"
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.115", "uvicorn>=0.30"]
+
+[project.scripts]
+fvapi-server = "fvapi_proto.server:main"
+fvapi = "fvapi_proto.client:main"
+fvapi-seed = "fvapi_proto.seed:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fvapi_proto"]

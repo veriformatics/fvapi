@@ -1,0 +1,54 @@
+{
+  "entries": [
+    {
+      "id": "vf.contrast-2x2",
+      "title": "2×2 factorial contrast checker (illustrative fixture)",
+      "kind": "checker",
+      "claim": "A named contrast matrix passes the checker exactly when its weights equal the proved compilation of the design's contrasts.",
+      "subject": {
+        "name": "2×2 factorial design",
+        "version": "fixture",
+        "artifact": null
+      },
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "replay_status": "real",
+      "licence_spdx": "LicenseRef-Veriformatics-Delivered"
+    },
+    {
+      "id": "fva.edger-cpm",
+      "title": "edgeR calc_cpm_raw, all inputs",
+      "kind": "version-proof",
+      "claim": "For every input, the shipped edgeR.so calc_cpm_raw computes counts-per-million as the spec states.",
+      "subject": {
+        "name": "edgeR.so",
+        "version": "edgeR (Bioconductor build in fva)",
+        "artifact": {
+          "name": "edgeR.so",
+          "sha256": "e39434314a9eb0399edf943c6a0475d34ff9d0d7ec0bb4a1b8ba726b4a6a88fb",
+          "bytes": 0
+        }
+      },
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "replay_status": "recorded",
+      "licence_spdx": "Apache-2.0 AND GPL-2.0-or-later"
+    },
+    {
+      "id": "fva.glm-iround",
+      "title": "GLM 1.0.3 iround breaks round-to-nearest",
+      "kind": "refutation",
+      "claim": "The shipped glm::iround<double> returns 1 on 0.49999999999999994, whose nearest integer is 0.",
+      "subject": {
+        "name": "glm-iround.wasm",
+        "version": "GLM 1.0.3",
+        "artifact": {
+          "name": "glm-iround.wasm",
+          "sha256": "eded7ae1f3c1ba100d618a98f8f86eb690577a8358e47e31f2039eb2f4a75a3a",
+          "bytes": 66
+        }
+      },
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "replay_status": "recorded",
+      "licence_spdx": "Apache-2.0"
+    }
+  ]
+}

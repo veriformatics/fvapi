@@ -1,0 +1,9 @@
+{
+  "hit": false,
+  "miss_id": "m-000001",
+  "logged": true,
+  "query": {
+    "artifact_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "detail": "No library entry matches. The miss is logged as demand; no agent works on single requests."
+}
