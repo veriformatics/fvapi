@@ -1,0 +1,6 @@
+# ITERATE — whole product (closed into IMPLEMENT)
+
+- Round 1: console shows provisional bundle terms + labels bundle axioms as declared (caller allowlist judges) + readout names its action; optional re-check container (`--container`, Lean 4.35.0 pinned by sha256, local build only); `check --recheck` gained the axiom audit it lacked.
+- Idle-work stub: seam `/v0/work` + 3 console variants started, then dropped when the user deferred the feature to IMPLEMENT (seam removed in 3397973).
+- User rulings recorded in Decisions: container publication waits for IMPLEMENT; idle work = IMPLEMENT; IMPLEMENT scope = library lookups + existing checkers, callers = founder + fvTrace + fva; guarantee boundary + multi-match lookup left to IMPLEMENT orientation; request data = contribute by default, opt-out, paid ZDR, caller isolation, operator-blindness proof as a goal.
+- Teammates: builder-1 (console fixes, pass), builder-2..4 (idle-work variants, stopped on deferral), builder-5 (container, pass), builder-6 (recheck audit, pass), janitor-1 (2 sweeps: .gitignore patch, then 10/10 pass), navigator-1 (16 rows: N12 drift fixed, questions asked), reviewer-1 (closing review R1–R6: F1 consent default resolved by user confirmation; rest pass).
