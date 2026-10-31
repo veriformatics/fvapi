@@ -47,7 +47,3 @@ Checks: server runs the entry's compiled checker on the input (temp dir, 10 s ti
 - `replay DIR`: verify every closure sha256 vs manifest → statement text present byte-identical at `file:line` → `real`: run `replay.command` in DIR, parse `#print axioms` lines, require an audit for every statement and every reported axiom in the **client-owned allowlist** → PASS/FAIL table, rc 0/1. Default allowlist = `{propext, Classical.choice, Quot.sound}`. `--axioms a,b,c` replaces it; otherwise `FVAPI_AXIOMS` replaces it when set. An empty override allows no axioms. A disallowed axiom → FAIL rc 1 naming it. The bundle's `expect_axioms` prints as `bundle declares: …` only; it never widens the client's list. `recorded`: print `RECORDED (not re-run)` + transcript, rc 3.
 - `check --recheck`: server verdict, then fetch + build the checker locally + re-run it on the same input; agree → rc 0, disagree → rc 1.
 - PROTOTYPE shortcut: replay runs `lean` unsandboxed (bundle = our own entry). IMPLEMENT: Comparator-style sandbox.
-
-## `GET /v0/work?state=` — idle library work (ITERATE stub)
-
-`{stub: true, note, states, step_s, items[]: {key, value, demand_count, state: queued|proving|added, since, next_change_s}}`. No worker runs: the top 3 demand keys cycle on a 30 s timer, offset one step each. `state=` pins the first item (console `?state=` drives). Real loop = IMPLEMENT.

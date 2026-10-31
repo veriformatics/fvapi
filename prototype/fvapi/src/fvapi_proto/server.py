@@ -17,8 +17,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from starlette.exceptions import HTTPException
 
-from fvapi_proto.work import work as work_stub
-
 STORE = Path(os.environ.get("FVAPI_STORE", "/srv/data/fvapi"))
 ROOT = Path(__file__).resolve().parents[2]
 STARTED = datetime.now(timezone.utc).isoformat()
@@ -201,11 +199,6 @@ def demand():
     rows = records("demand")
     counts = Counter(f"{k}:{v}" for row in rows for k, v in row["query"].items())
     return {"misses": rows[::-1], "by_key": [{"key": key, "count": count} for key, count in counts.most_common()]}
-
-
-@app.get("/v0/work")
-def work(state: str = ""):
-    return work_stub(demand()["by_key"], force=state or None)
 
 
 @app.get("/v0/answers")
