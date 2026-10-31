@@ -36,7 +36,7 @@ class Handler(SimpleHTTPRequestHandler):
         p = self.path.split("?")[0]
         if p == "/":
             items = "".join(f'<li><a href="/console/{d.name}/">{d.name}</a></li>'
-                            for d in sorted(VARIANTS.iterdir()) if d.is_dir())
+                            for d in sorted(VARIANTS.glob("*/")))
             html = f"<!doctype html><title>fvapi mock</title><h1>Console variants (mock)</h1><ul>{items}</ul>"
             body = html.encode()
             self.send_response(200)
