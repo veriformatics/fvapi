@@ -17,7 +17,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - Sessions (user ruling): Claude sessions + this repository live on the desktop; vflab does the work, stores artifacts and is maintained from there.
 - Request-time answers use no LLM (subscription terms: Claude Code "Customers may not pay for, resell, or intermediate Claude usage on their end users' behalf"; OpenAI's sign-in terms prohibit "Using one user's subscription to fulfill another user's requests") ⇒ lookups, proved checkers, CPU automation; LLM work = the library's own development, or paid API keys later.
 - Prototype set (user rulings): v0 HTTP+JSON API on vflab + a browser console (catalog, request playground, bundle view, demand log) + `fvapi` CLI client that fetches a bundle and replays it; Python FastAPI via uv; runs + is inspected on vflab alone; real replay for one entry (`vf.contrast-2x2`, a factorial contrast checker importing `Std` alone), the fva seeds = recorded stubs labelled as such; console = full variant fan-out (≥10 conventional + ≥5 unconventional).
-- Library content stays out of git (repo `veriformatics/fvapi` = public): code + formats are committed; entries, proofs, seed metadata + study details reach vflab's store through `seed.py` from local sources alone (seed manifest `prototype/fvapi/seed.local.json`, gitignored); fixtures + examples in git = synthetic.
+- Library content stays out of git (repo `veriformatics/fvapi` = public): code + formats are committed; entries, proofs, seed metadata + study details reach vflab's store through `seed.py` from local sources alone (seed manifest `prototype/fvapi/seed.local.json`, gitignored); fixtures + examples in git = synthetic, or drawn from public fva (Apache-2.0).
 
 ## Tasks
 
