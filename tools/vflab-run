@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+# Runs a command on vflab (user ruling: all fvapi work runs there) in this worktree's workspace,
+# inside fvapi_gate.slice, and exits with the command's exit status.
+# Workspace ~/gate/ws/<worktree>-<8 hex of sha256(worktree path)>: before each run, under one
+# lock, it becomes a git clone at this worktree's HEAD (pushed to the bare ~/gate/repo.git, so
+# history-reading stages see it) with exactly the worktree's tracked + untracked-unignored files;
+# .lake/ + .tools/ persist as caches. The lock, the sync and the command live in one systemd unit,
+# so a dropped connection cannot free the workspace while the command still runs; a second
+# worktree whose path hashes to the same id is refused. The slice must already exist with its
+# caps (tools/bootstrap-vflab.sh): systemd would otherwise create an empty one on demand.
+# The unit is Type=oneshot (a simple service counts SIGTERM as success → a false green) with
+# --expand-environment=no (arguments stay literal) and IgnoreSIGPIPE=no (local shell semantics).
+# Output streams live with the remote workspace path mapped back to this worktree.
+# Usage: tools/vflab-run <command> [args…]   FVAPI_VFLAB = ssh target (default vflab);
+# FVAPI_VFLAB_TIMEOUT = seconds before the unit is stopped (default 7200);
+# FVAPI_VFLAB_MEMORY = the unit's MemoryMax (default: the slice's cap alone).
+# Exit: the command's status (0–255); 125 = sync or output mapping failed with the command at 0;
+# a signal, OOM kill, timeout or lost connection ≠ 0, never 0.
+# Remote command lines are composed here on purpose (quoted argv for the remote shell).
+# shellcheck disable=SC2029
+set -uo pipefail
+
+[[ $# -ge 1 ]] || {
+    printf 'usage: tools/vflab-run <command> [args…]\n' >&2
+    exit 2
+}
+root="$(git -C "$(dirname -- "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)" || exit 2
+host="${FVAPI_VFLAB:-vflab}"
+timeout="${FVAPI_VFLAB_TIMEOUT:-7200}"
+memory="${FVAPI_VFLAB_MEMORY:-infinity}"
+slice=fvapi_gate.slice
+# The id reaches a remote command line: anything outside [A-Za-z0-9._-] → _.
+id="$(basename -- "$root" | tr -c 'A-Za-z0-9._\n-' _)-$(printf '%s' "$root" | sha256sum | cut -c1-8)"
+home=/home/eturkes
+ws="$home/gate/ws/$id"
+ssh_opts=(-o BatchMode=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
+
+fail_sync() {
+    printf 'vflab-run: %s (workspace %s:%s)\n' "$1" "$host" "$ws" >&2
+    exit 125
+}
+
+ssh "${ssh_opts[@]}" "$host" "[ -d '$home/gate/repo.git' ] || git init -q --bare '$home/gate/repo.git'
+    [ -e /etc/systemd/system/$slice ] && systemctl is-active --quiet $slice" ||
+    fail_sync "bare repository or $slice missing (run tools/bootstrap-vflab.sh)"
+head="$(git -C "$root" rev-parse HEAD)" || fail_sync 'no HEAD commit'
+GIT_SSH_COMMAND="ssh ${ssh_opts[*]}" git -C "$root" push -q --force \
+    "$host:gate/repo.git" "$head:refs/heads/ws/$id" || fail_sync 'git push failed'
+
+# Runs inside the unit, under the workspace lock: sync from the tar stream on stdin, then the
+# command with stdin from /dev/null. Exit 125 before the command = sync refused or failed.
+# shellcheck disable=SC2016
+inner='set -uo pipefail
+ws=$1 origin=$2 ref=$3 head=$4
+shift 4
+fail() { printf "vflab-run: %s\n" "$1" >&2; exit 125; }
+if [ -e "$ws.origin" ] && [ "$(cat "$ws.origin")" != "$origin" ]; then
+    fail "workspace $ws belongs to $(cat "$ws.origin"), not $origin"
+fi
+printf "%s\n" "$origin" >"$ws.origin" || fail "cannot record the workspace origin"
+if [ ! -d "$ws/.git" ]; then
+    mkdir -p "$ws" && git -C "$ws" init -q &&
+        git -C "$ws" remote add origin "$HOME/gate/repo.git" || fail "workspace init failed"
+fi
+git -C "$ws" fetch -q origin "$ref" || fail "fetch failed"
+[ "$(git -C "$ws" rev-parse FETCH_HEAD)" = "$head" ] || fail "pushed ref moved before the run"
+git -C "$ws" reset -q --hard FETCH_HEAD || fail "reset failed"
+rm -rf "$ws/.incoming" && mkdir "$ws/.incoming" || fail "staging failed"
+tar -C "$ws/.incoming" -xf - || fail "file stream truncated"
+rsync -a --delete --exclude=/.git/ --exclude=/.lake/ --exclude=/.tools/ --exclude=/.incoming/ \
+    "$ws/.incoming/" "$ws/" || fail "file sync failed"
+rm -rf "$ws/.incoming"
+cd "$ws" || fail "workspace missing"
+"$@" </dev/null'
+
+quote() { printf '%q ' "$@"; }
+remote="sudo systemd-run --quiet --uid=eturkes --gid=eturkes --slice=$slice \
+    --wait --pipe --collect --expand-environment=no --property=Type=oneshot \
+    --property=TimeoutStartSec=$timeout --property=TimeoutStopSec=30 \
+    --property=MemoryMax=$memory --property=IgnoreSIGPIPE=no \
+    --setenv=HOME=$home \
+    --setenv=PATH=$home/.elan/bin:$ws/.tools/bin:$home/.local/node/bin:/usr/local/bin:/usr/bin:/bin \
+    -- $(quote /usr/bin/flock "$ws.lock" /bin/bash -c "$inner" vflab-run "$ws" "$root" \
+        "refs/heads/ws/$id" "$head" "$@")"
+
+# Output through FIFOs so each mapping filter's status is checked: a failed filter never turns a
+# successful command into green, and a failed command keeps its own status.
+fifo="$(mktemp -d)"
+trap 'rm -rf "$fifo"' EXIT
+mkfifo "$fifo/out" "$fifo/err"
+map="s#$ws#$root#g"
+sed -u "$map" <"$fifo/out" &
+out_pid=$!
+sed -u "$map" <"$fifo/err" >&2 &
+err_pid=$!
+git -C "$root" ls-files -co --exclude-standard -z |
+    tar -C "$root" --null -T - -cf - |
+    ssh "${ssh_opts[@]}" "$host" "$remote" >"$fifo/out" 2>"$fifo/err"
+statuses=("${PIPESTATUS[@]}")
+wait "$out_pid"
+out_rc=$?
+wait "$err_pid"
+err_rc=$?
+rc="${statuses[2]}"
+if [[ $rc -ne 0 ]]; then
+    exit "$rc"
+fi
+if [[ "${statuses[0]}" -ne 0 || "${statuses[1]}" -ne 0 ]]; then
+    printf 'vflab-run: local file listing or archive failed (git %s, tar %s)\n' \
+        "${statuses[0]}" "${statuses[1]}" >&2
+    exit 125
+fi
+if [[ $out_rc -ne 0 || $err_rc -ne 0 ]]; then
+    printf 'vflab-run: output mapping failed (stdout filter %s, stderr filter %s)\n' \
+        "$out_rc" "$err_rc" >&2
+    exit 125
+fi
+exit 0

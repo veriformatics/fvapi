@@ -1,0 +1,6 @@
+# Gate
+
+- Gate = `tools/vflab-run bash tools/gate.sh` (user ruling: all fvapi work — builds, gates, spikes, tests — runs on vflab; this overrides the global `offload run` default for this repo; the desktop runs no fvapi build or check). Iteration = `tools/vflab-run bash tools/fast-gate.sh` (never the claim). Any other command that builds or runs fvapi code → `tools/vflab-run <cmd>`. Contract + predicates: `docs/contracts/U1-foundation.md`.
+- `tools/vflab-run` needs `fvapi_gate.slice` on vflab (`bash tools/bootstrap-vflab.sh`, idempotent, asserts the live cgroup limits). Exit = the command's status; 125 = sync or output mapping failed; a signal, OOM kill or timeout (`FVAPI_VFLAB_TIMEOUT`, default 7200 s) never exits 0.
+- CI gate, once `main`'s CI is green: `bash tools/ci-gate.sh <unit>` (push `ci/<unit>`, green only when every shard job succeeded, branch deleted when green). Until then the full gate runs on vflab alone.
+- Gate timings on vflab (U1, end to end incl. sync / in-gate): cold = fresh workspace without `.lake` + `.tools` (elan toolchain + bare repo kept) 23.6 / 21.9 s; no-op rerun 17.9 / 16.5 s (warm = no-op until a new HEAD lands); one Lean file edited 17.9 / 16.5 s (lean-build 0.5 s); fast gate 2.9 / 1.2 s. Slowest stage: `probes` 10.6 s.

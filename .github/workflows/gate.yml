@@ -1,0 +1,55 @@
+# CI runs the same command a human and an agent run (tools/gate.sh), one job per shard of its
+# stages; calling a tool directly here would let CI and the local gate drift into two claims.
+# Secret-free + host-independent (`Decisions` → `Gate + CI`): GitHub-hosted runners, read-only token.
+name: gate
+
+on:
+  push:
+    # ci/* = an agent's unit under test before it lands on main (.claude/rules/gate.md: CI gate).
+    branches: [main, "ci/**"]
+  pull_request:
+  # Advisory databases + scanner rules move without commits; a weekly run surfaces that.
+  schedule:
+    - cron: "23 5 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Shards run in parallel, each on a fresh checkout (tools/gate.sh STAGES; its `fanout` stage holds
+  # this matrix equal to the shards there).
+  gate:
+    name: gate (${{ matrix.shard }})
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [lean, checks]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
+    env:
+      SHARD: ${{ matrix.shard }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The secret scan reads the whole history.
+          fetch-depth: 0
+
+      # Pinned elan, every download bounded + retried (tools/install-lean.sh).
+      - name: Install the Lean toolchain named in lean-toolchain
+        if: matrix.shard == 'lean'
+        timeout-minutes: 10
+        run: bash tools/install-lean.sh
+
+      - name: Install system tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends shellcheck jq
+
+      - name: Run the gate shard
+        run: bash tools/gate.sh --shard "$SHARD"

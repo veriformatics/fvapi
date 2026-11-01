@@ -1,0 +1,49 @@
+# U1 Foundation — contract (agent-read; frozen after consultant-13's review)
+
+Sources: `.agent/spec.md` `Decisions` → `Sessions + placement`, `Gate + CI`, `Stack`, `Openness`, `Code licence`; CLAUDE.md `Execution` (gate command, timing output, fast gate, CI gate, evidence) + `Engineering` (purpose-built checks with planted inputs, verification integrity, tiers).
+
+Tiers: **kernel** = gate aggregation + selection, every check predicate that decides green, probe verdicts, runner status + lifecycle + isolation, fan-out wiring, CI-helper completion. **data** = package metadata + fetched artifact records, revalidated before use by the gate's own identity checks (`tools/fetch-tools.sh` digests, `lake` build).
+
+## Gate verdict (`tools/gate.sh`)
+
+- G1 `STAGES` is nonempty; each row = a unique stage whose function exists + ≥ 1 shard; an invalid registry fails before any stage (rc 2). A run executes the selected stages in order, each in a subshell, to completion after any failure; a stage that exits its process cannot end the run. Each stage prints `=== <stage> ===` then `<stage> rc=<N> <S>s`; the run ends with `gate rc=0 <S>s` iff every selected stage returned 0, else `FAILED: <stage…>` naming every failed stage + `gate rc=1 <S>s`, exit 1.
+- G2 `--shard NAME` runs exactly the stages tagged NAME; an unknown shard or extra argument → usage on stderr, exit 2, no stage runs.
+- G3 Every stage verifies the tools it consumes. Pinned tools (`tools/tools.lock`) are called by their installed path after `tools/fetch-tools.sh` confirms version + archive digest + installed-binary digest (a changed cached binary is reinstalled from the verified archive; an ambient same-named executable never stands in); a missing distribution tool fails its stage. An unavailable tool = gate incomplete, never green.
+- G4 Sourcing `tools/gate.sh` defines the stage functions + `registry_ok` without running a stage.
+- Stage predicates: `lean-style` = Lean sources have no tab, no trailing whitespace, no line over 100 characters, a final LF; `imports` = `Main.lean`, `Fvapi.lean` + `Fvapi/**` import only `Init`, `Std`, `Fvapi` or their submodules (component boundaries), the rejected import named with its file + line; tests (`Tests.lean`) sit outside the shipped set and may import more; `meta` = exactly one nonempty version in `Fvapi/Version.lean` + `lakefile.lean`, equal, and every rule file's frontmatter closes and keeps `paths:` as a list of double-quoted globs; `spec` = `.agent/spec-lint`; `shell` = shellcheck on every tracked or untracked-unignored shell file; `secrets` = betterleaks over history + tree; `workflows` = zizmor + actionlint; `fanout` = below; `deps` = every pin (lean-toolchain, `tools/tools.lock`, workflow actions, Lake packages) has a row in `docs/dependencies.md`; `renovate` = below; `probes` = P1; `lean-build` / `lean-test` / `cli` = below.
+
+## Remote run (`tools/vflab-run`)
+
+- R1 Normal command exits 0–255 propagate exactly. A signal, OOM kill, timeout, failed start or lost connection returns nonzero, never 0. When the command and an output filter both fail, the command's status wins; a failed filter or local archive with the command at 0 → 125. The unit is `Type=oneshot` (a `Type=simple` unit returns 0 for SIGTERM), its deadline `TimeoutStartSec` (`RuntimeMaxSec` has no effect on oneshot), `TimeoutStopSec=30`, `IgnoreSIGPIPE=no`.
+- R2 Argv passes as a vector with systemd environment expansion off (`$…` stays literal); the command's working directory = its workspace; PATH = the pinned toolchain + tool + Node paths; stdin = /dev/null; stdout + stderr stay separate, live, with every occurrence of the remote workspace path rewritten to the local worktree path.
+- R3 Workspace (ruling: one per worktree, reset before every run, replaces a fresh per-run directory because runs of a worktree serialize): `~/gate/ws/<worktree>-<8 hex>`; before the command, inside the same unit and under the same lock, it becomes a git clone at the worktree's `HEAD` (pushed to `~/gate/repo.git`; full history; no controller `.git` pointer) with exactly the worktree's tracked + untracked-unignored files — deleted files removed, ignored files absent, executable bits + symlinks kept; `.lake/` + `.tools/` persist as caches. The lock lives in the unit, so a dropped connection cannot free a workspace whose command still runs. A workspace recorded for another worktree path is refused (125). Different worktrees run concurrently.
+- R4 The command runs as `eturkes` in `fvapi_gate.slice`, a top-level slice beside `system.slice` (`tools/bootstrap-vflab.sh`, idempotent): CPUQuota 600 %, CPUWeight 20, IOWeight 20, MemoryMax 40 GiB, MemorySwapMax 0, TasksMax 4096, root-disk read 250 MB/s + write 150 MB/s. The bootstrap asserts the live cgroup values (`cpu.max`, `cpu.weight`, `memory.max`, `memory.swap.max`, `pids.max`, `io.max`); the runner refuses to start without the slice (systemd would create an empty one on demand). Service coexistence under load = the deferred measurement (`.agent/deferred.md`).
+- R5 Qualification on the real host = `bash tools/vflab-run-probe.sh` from the desktop (exit statuses, five signals, OOM, timeout, literal argv, path mapping on both streams, deleted + ignored files, executable bits + symlinks, same-worktree serialization, a linked worktree, origin collision, a failing filter), reported beside the public gate result.
+
+## Skeleton (data, except K2's exit mapping = kernel)
+
+- K1 Lake package `fvapi` (version in `Fvapi/Version.lean` = `lakefile.lean`), `lean-toolchain` = `leanprover/lean4:v4.35.0`, `leanOptions` autoImplicit off + warningAsError on, license Apache-2.0 with `LICENSE` (canonical text) as its licence file. Probes show a planted implicit variable + a planted warning each rejected, and each compiling once its owning option is removed.
+- K2 `fvapi --version` → exactly `fvapi <version>` + LF on stdout, rc 0; `fvapi help` / `--help` → usage naming `--version` + `help` on stdout, rc 0; no argument, an unknown command or an extra argument → usage on stderr, rc 2.
+- K3 `lake test` runs the driver (per-case PASS/FAIL, the slowest case, rc = failures); `cli` drives the built binary through every K2 case, asserting rc, the stream used and the other stream empty.
+
+## CI + updates
+
+- C1 `.github/workflows/gate.yml`: push to `main` + `ci/**`, pull requests, weekly schedule; one job per shard (`fail-fast: false`), `SHARD` bound to the matrix value, one unconditional, unmasked `bash tools/gate.sh --shard "$SHARD"` step; full history (`fetch-depth: 0`); GitHub-hosted runners; `permissions: contents: read`; `persist-credentials: false`; actions pinned by digest; no configured secrets or private inputs; bounded steps + job.
+- C2 `.github/workflows/codeql.yml`: CodeQL `security-extended` over `actions`. Lean has no CodeQL extractor; U1 runs compilation + tests, U2 supplies the verification-profile checks — a declared coverage boundary, not equivalent CodeQL coverage.
+- C3 `renovate.json`: digest-pinned actions; custom regex managers for `lean-toolchain`, `tools/tools.lock` and `lake-manifest.json`. Stage `renovate` applies each manager the way Renovate's regex manager does and requires the result to equal an independent parse of the real files + a synthetic two-package Lake manifest; a tools.lock line whose URL lacks its version fails naming `tools/pin-tool.sh <name> <version>`. `renovate-config-validator --strict` rc 0 is recorded per `renovate.json` edit.
+- C4 `tools/ci-gate.sh <unit>`: dirty tree or invalid unit → rc 2; pushes only `ci/<unit>`; green (rc 0) only when the run's commit = HEAD and every shard has exactly one job `gate (<shard>)` with conclusion success (`ci_missing`, probed with fixtures); prints commit, tree, per-job conclusion + wall-clock and fan-out time; deletes the branch only while it still names the tested commit; never pushes `main`.
+
+## Fast gate + timings
+
+- F1 `tools/fast-gate.sh` runs `FAST_STAGES` (declared in `tools/gate.sh`): independent checks in parallel, then `lean-build` → `lean-test` → `cli`; waits for and reports every selected stage; rc 0 iff all returned 0; prints the selected stages and the skipped ones (registry minus `FAST_STAGES`); never claims full-gate green.
+- F2 Recorded in the commit body + `.claude/rules/gate.md`: end-to-end caller wall-clock + in-gate time on vflab for cold (fresh workspace + build + tool caches), warm (populated caches, previous HEAD), no-op (immediate byte-identical rerun) and one content-changing Lean edit.
+
+## Probes (`tools/gate-probe.sh`, gate stage `probes`)
+
+- P1 Each purpose-built check passes on a clean scratch copy, fails on its planted input with its owning diagnostic, and passes again once the copy is restored byte for byte; probes cover the registry, stage exit + several failures, shard usage, missing + tampered tools, `imports`, `lean-style`, five `fanout` breaches, `deps`, two `renovate` breaches, both `meta` invariants, `spec`, `cli`, both compiler options, `ci_missing` and a failing fast-gate background stage. The public stage needs no vflab access; real-host runner qualification = R5.
+
+## Boundary + records
+
+- U1's green covers this contract alone: no `Answer guarantee` or independent-kernel claim. U2 registers the per-claim trust, mutation + verification-profile checks in this same gate before verified product claims ship; no whole-package `lake check --paranoid` or placeholder proof stage substitutes for them.
+- `tools/gate.sh` runs from a clean public clone (no vflab, private library, ignored seed material or desktop path); vflab bootstrap + runner commands stay outside the public gate.
+- `.agent/review.md` holds U1's fixed check set; the commit body records each credited red run (revision + command), mutation evidence for behaviour that passed before its test, and checks not run.
