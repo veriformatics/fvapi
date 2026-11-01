@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Renovate's custom managers extract every pin they own (gate stage `renovate`).
 
 Each customManager's regex is applied to its files the way Renovate's regex manager does (every
