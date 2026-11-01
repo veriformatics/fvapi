@@ -43,6 +43,7 @@ lean-test   lean
 cli         lean
 probes      lean
 profile     lean
+inventory   lean
 imports     checks
 spec        checks
 shell       checks
@@ -110,6 +111,15 @@ probes() { bash tools/gate-probe.sh; }
 
 # verify/profile.json names exactly the kernels, exporter, comparator + runtime this host executes.
 profile() { bash tools/check-profile.sh; }
+
+# verify/claims.json ↔ the elaborated closed claims, proof types, call paths, matrix rows (U2 P4).
+inventory() {
+    lake build FvapiProofs >/dev/null 2>&1 || {
+        printf 'inventory: FvapiProofs does not build\n' >&2
+        return 1
+    }
+    lake env lean --run tools/lean/Inventory.lean
+}
 
 # Shipped modules import Init, Std + Fvapi alone (`Decisions` → `Stack`: a Std-only server binary).
 imports() { bash tools/check-imports.sh; }

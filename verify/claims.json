@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "production_roots": ["Fvapi", "Main"],
+  "audit_roots": ["FvapiProofs"],
+  "claims": [
+    {
+      "id": "policy-exact",
+      "domain": "Policy",
+      "spec_module": "FvapiSpec.Policy",
+      "claim_module": "FvapiSelf.Policy",
+      "claim": "FvapiSelf.Policy.PolicyExact",
+      "proof": "FvapiProof.Policy.policy_exact",
+      "proof_module": "FvapiProof.Policy",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": ["Fvapi.Verify.Policy"],
+      "reviewed_surface_budget": 40,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": ["Fvapi.Verify.verdict"]
+    },
+    {
+      "id": "accepting-exact",
+      "domain": "Policy",
+      "spec_module": "FvapiSpec.Policy",
+      "claim_module": "FvapiSelf.Policy",
+      "claim": "FvapiSelf.Policy.AcceptingExact",
+      "proof": "FvapiProof.Policy.accepting_exact",
+      "proof_module": "FvapiProof.Policy",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": ["Fvapi.Verify.Policy"],
+      "reviewed_surface_budget": 40,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": ["Fvapi.Verify.accepting"]
+    }
+  ]
+}
