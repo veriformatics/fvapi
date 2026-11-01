@@ -242,6 +242,22 @@ plant_tool() {
 }
 probe deps plant_tool "planted has no row" bash tools/check-deps.sh
 
+# renovate: the vendored-C manager stops matching its lock.
+plant_vendor_manager() { sed -i 's/\\"commit\\":/\\"revision\\":/' renovate.json; }
+probe renovate-vendor plant_vendor_manager "vendor/hacl-star/lock.json: extracted" python3 -I tools/check-renovate.py
+
+# vendor: one changed byte, a missing file, an extra file in the vendored HACL* tree; a vendored
+# upstream without a dependency-table row.
+hacl=vendor/hacl-star/dist/gcc-compatible
+plant_vendor_byte() { sed -i '1s/MIT License/MIT License /' "$hacl/Hacl_Hash_SHA2.c"; }
+plant_vendor_missing() { rm "$hacl/Hacl_Krmllib.h"; }
+plant_vendor_extra() { printf 'int planted;\n' >"$hacl/planted.c"; }
+plant_vendor_row() { sed -i 's/hacl-star\/hacl-star/hacl-star\/planted/' vendor/hacl-star/lock.json; }
+probe vendor-byte plant_vendor_byte "Hacl_Hash_SHA2.c sha256 differs" bash tools/check-vendor.sh
+probe vendor-missing plant_vendor_missing "Hacl_Krmllib.h missing" bash tools/check-vendor.sh
+probe vendor-extra plant_vendor_extra "planted.c not in" bash tools/check-vendor.sh
+probe vendor-deps plant_vendor_row "hacl-star/planted has no row" bash tools/check-deps.sh
+
 # renovate: a manager that stops matching; a half-applied version bump.
 plant_manager() { sed -i 's/leanprover\/lean4:v(?<currentValue>/leanprover\/lean5:v(?<currentValue>/' renovate.json; }
 probe renovate-extract plant_manager "lean-toolchain: extracted" python3 -I tools/check-renovate.py

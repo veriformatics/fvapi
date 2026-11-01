@@ -13,6 +13,13 @@
         "leanprover/lean4"
       ],
       "groupName": "Lean toolchain"
+    },
+    {
+      "description": "Vendored C pins a commit on a moving branch (no release timestamps); tools/vendor-hacl.sh COMMIT relocks the file hashes in the same PR",
+      "matchDatasources": [
+        "git-refs"
+      ],
+      "minimumReleaseAge": "0 days"
     }
   ],
   "customManagers": [
@@ -51,6 +58,19 @@
         "\"url\":\\s*\"https://github\\.com/(?<packageName>[^\"]+?)(?:\\.git)?\",[\\s\\S]*?\"rev\":\\s*\"(?<currentDigest>[0-9a-f]{40})\",[\\s\\S]*?\"name\":\\s*\"(?<depName>[^\"]+)\",[\\s\\S]*?\"inputRev\":\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "github-tags"
+    },
+    {
+      "customType": "regex",
+      "description": "Vendored upstream C (vendor/*/lock.json): the commit on main",
+      "managerFilePatterns": [
+        "/^vendor/[^/]+/lock\\.json$/"
+      ],
+      "matchStrings": [
+        "\"upstream\":\\s*\"https://github\\.com/(?<depName>[^\"]+)\",\\s*\"commit\":\\s*\"(?<currentDigest>[0-9a-f]{40})\""
+      ],
+      "packageNameTemplate": "https://github.com/{{{depName}}}",
+      "currentValueTemplate": "main",
+      "datasourceTemplate": "git-refs"
     }
   ]
 }
