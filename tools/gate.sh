@@ -38,12 +38,15 @@ stage() {
 STAGES='
 tools       checks
 lean-style  checks
-lean-build  lean
+lean-build  lean audit
 lean-test   lean
 cli         lean
+profile     lean audit
+inventory   lean audit
 probes      lean
-profile     lean
-inventory   lean
+capsule     audit
+self-audit  audit
+audit-probes audit
 blackbox    lean
 tests-u3    lean
 imports     checks
@@ -120,7 +123,18 @@ lean_test() {
 cli() { bash tests/cli/smoke.sh "$root/.lake/build/bin/fvapi"; }
 
 # Each purpose-built check passes on a clean copy, fails on its planted input, passes restored.
-probes() { bash tools/gate-probe.sh; }
+probes() { bash tools/gate-probe.sh --base; }
+
+# Capsule-dependent probes stay on the audit CI shard; no argument runs every probe.
+audit_probes() { bash tools/gate-probe.sh --audit; }
+
+capsule() { bash tools/capsule-root-control.sh; }
+
+self_audit() {
+    local path
+    path="$(bash tools/build-capsule.sh)" || return 1
+    python3 -I tools/self-audit.py --capsule "$path"
+}
 
 # verify/profile.json names exactly the kernels, exporter, comparator + runtime this host executes.
 profile() { bash tools/check-profile.sh; }

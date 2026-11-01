@@ -12,6 +12,8 @@ set -uo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd -- "$root" || exit 1
+mode="${1:---all}"
+case "$mode" in --all | --base | --audit) ;; *) printf 'usage: gate-probe.sh [--base|--audit]\n' >&2; exit 2 ;; esac
 
 # A git-tracked scratch copy of the worktree (the checks read `git ls-files`); pinned tools come
 # along so tool stages run offline, and the Lake build cache so Lean plants rebuild incrementally.
@@ -21,7 +23,8 @@ copy() {
     git ls-files -co --exclude-standard -z | tar --null -T - -cf - | tar -C "$dir" -xf -
     git -C "$dir" init -q && git -C "$dir" add -A &&
         git -C "$dir" -c user.name=probe -c user.email=probe@invalid commit -q -m probe
-    [[ -d "$root/.tools" ]] && cp -a "$root/.tools" "$dir/"
+    # CI keeps the multi-GB capsule here; probes share its revalidated external path instead.
+    [[ -d "$root/.tools" ]] && rsync -a --exclude=/capsules/ "$root/.tools/" "$dir/.tools/"
     # Lake rebuilds what a plant changes (content-keyed traces); the rest stays cached.
     [[ -d "$root/.lake" ]] && cp -a "$root/.lake" "$dir/"
     printf '%s' "$dir"
@@ -78,6 +81,7 @@ shift 2
 main "$@"' _ "$stages" "$fns" "$@" 2>&1
 }
 
+if [[ "$mode" != --audit ]]; then
 # G1: a failing stage among passing ones → every stage runs, rc 1, the failure named.
 aggregate() {
     local out rc
@@ -194,6 +198,14 @@ plant_id() { jq_edit '.id = "sha256:" + ("0" * 64)'; }
 probe profile-id plant_id "!= recomputed" profile_stage
 plant_runtime() { jq_edit '.runtime.sha256 = ("0" * 64)'; }
 probe profile-runtime plant_runtime "runtime manifest" profile_stage
+plant_canary_pin() { jq_edit '.canaries.files["prelude-15704/replaced-prelude"] = ("0" * 64)'; }
+probe profile-canary-pin plant_canary_pin "canaries.files != pinned canary set" profile_stage
+plant_canary_bytes() {
+    local cache
+    cache="$(python3 -I tools/canaries.py)" || return 1
+    printf 'planted' >"$cache/prelude-15704/replaced-prelude.ndjson"
+}
+probe profile-canary-bytes plant_canary_bytes "canaries.files.prelude-15704/replaced-prelude" profile_stage
 
 # inventory: a dropped row; a wrong proof type; a non-production call path; a missing matrix row;
 # a closed-claim module importing another domain's claims.
@@ -310,7 +322,7 @@ probe lean-style plant_tab ": tab" bash tools/lean-style.sh
 
 # fanout: a missing shard; a disabled gate step; a masked one; SHARD unbound; fail-fast on.
 fanout_stage() { bash -c 'source tools/gate.sh; fanout'; }
-plant_matrix() { sed -i 's/^\( *shard: \)\[lean, checks\]$/\1[lean]/' .github/workflows/gate.yml; }
+plant_matrix() { sed -i 's/^\( *shard: \)\[lean, checks, audit\]$/\1[lean, checks]/' .github/workflows/gate.yml; }
 probe fanout-shards plant_matrix "matrix shards" fanout_stage
 plant_disabled() {
     sed -i 's/^\(      - name: Run the gate shard\)$/\1\n        if: false/' .github/workflows/gate.yml
@@ -346,6 +358,8 @@ probe native-asan plant_native_overread "AddressSanitizer" bash tests/native/run
 # renovate: the vendored-C manager stops matching its lock.
 plant_vendor_manager() { sed -i 's/\\"commit\\":/\\"revision\\":/' renovate.json; }
 probe renovate-vendor plant_vendor_manager "vendor/hacl-star/lock.json: extracted" python3 -I tools/check-renovate.py
+plant_capsule_manager() { sed -i 's#verify/capsule#verify/missing-capsule#' renovate.json; }
+probe renovate-capsule plant_capsule_manager "verify/capsule.lock: extracted" python3 -I tools/check-renovate.py
 
 # vendor: one changed byte, a missing file, an extra file in the vendored HACL* tree; a vendored
 # upstream without a dependency-table row.
@@ -423,9 +437,9 @@ probe option-warningAsError plant_marker "rejected only while warningAsError is 
 # ci-gate: a run whose shard job was skipped is not green (fixtures of `gh run view --json jobs`).
 ci_verdict() {
     local doc missing
-    doc='{"jobs":[{"name":"gate (lean)","conclusion":"success"},{"name":"gate (checks)","conclusion":"success"}]}'
-    [[ -e .planted ]] && doc='{"jobs":[{"name":"gate (lean)","conclusion":"success"},{"name":"gate (checks)","conclusion":"skipped"}]}'
-    missing="$(bash -c 'source tools/ci-gate.sh; ci_missing "$1" lean checks' _ "$doc")" || return 1
+    doc='{"jobs":[{"name":"gate (lean)","conclusion":"success"},{"name":"gate (checks)","conclusion":"success"},{"name":"gate (audit)","conclusion":"success"}]}'
+    [[ -e .planted ]] && doc='{"jobs":[{"name":"gate (lean)","conclusion":"success"},{"name":"gate (checks)","conclusion":"skipped"},{"name":"gate (audit)","conclusion":"success"}]}'
+    missing="$(bash -c 'source tools/ci-gate.sh; ci_missing "$1" lean checks audit' _ "$doc")" || return 1
     [[ -z "$missing" ]] && return 0
     printf 'not green: %s\n' "$missing"
     return 1
@@ -435,6 +449,28 @@ probe ci-verdict plant_marker "not green: checks" ci_verdict
 # fast gate: a failing background stage fails the fast gate, named.
 plant_fast() { sed -i '1i import Lean' Fvapi/Cli.lean; }
 probe fast-gate plant_fast "FAILED: imports" bash tools/fast-gate.sh
+fi
+
+if [[ "$mode" != --base ]]; then
+    # The capsule is shared + locked; each plant gets private hardlinks and replaces whole files.
+    FVAPI_TEST_CAPSULE="$(bash tools/build-capsule.sh)" || exit 1
+    export FVAPI_TEST_CAPSULE
+    probe capsule-missing-tool plant_marker "tool fva: missing executable" bash tools/capsule-probe.sh missing
+    probe capsule-partial plant_marker "partial capsule: capsule.json missing" bash tools/capsule-probe.sh partial
+    probe capsule-tool-bytes plant_marker "capsule binaries: bytes differ" bash tools/capsule-probe.sh tool
+    probe capsule-source-bytes plant_marker "source FVATest/Mutate/Main.lean differs" bash tools/capsule-probe.sh source
+    probe capsule-canary-bytes plant_marker "canary prelude-15704/replaced-prelude" bash tools/capsule-probe.sh canary
+    probe self-audit-sorry plant_marker "non_pass tags=axiom" bash tools/self-audit-probe.sh sorry
+    probe self-audit-axiom plant_marker "non_pass tags=axiom" bash tools/self-audit-probe.sh axiom
+    probe self-audit-partial plant_marker "override" bash tools/self-audit-probe.sh partial
+    probe self-audit-malformed plant_marker "malformed success output" bash tools/self-audit-probe.sh malformed
+    probe self-audit-claim-set plant_marker "claim set != inventory" bash tools/self-audit-probe.sh claims
+    probe self-audit-proof-set plant_marker "proof identities != inventory" bash tools/self-audit-probe.sh proof
+    probe self-audit-subjects plant_marker "subject identities != inventory" bash tools/self-audit-probe.sh subjects
+    probe self-audit-build plant_marker "build_failed" bash tools/self-audit-probe.sh build
+    probe self-audit-memory plant_marker "aggregate_memory_exceeded" python3 -I tools/audit-supervisor-probe.py memory
+    probe self-audit-timeout plant_marker "whole_invocation_timeout" python3 -I tools/audit-supervisor-probe.py timeout
+fi
 
 wait
 cat "$results"/*

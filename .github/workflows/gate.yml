@@ -27,11 +27,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [lean, checks]
+        shard: [lean, checks, audit]
     runs-on: ubuntu-26.04
     timeout-minutes: 60
     env:
       SHARD: ${{ matrix.shard }}
+      FVAPI_CAPSULE_ROOT: ${{ github.workspace }}/.tools/capsules
     steps:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -42,7 +43,7 @@ jobs:
 
       # Pinned elan, every download bounded + retried (tools/install-lean.sh).
       - name: Install the Lean toolchain named in lean-toolchain
-        if: matrix.shard == 'lean'
+        if: matrix.shard != 'checks'
         timeout-minutes: 10
         run: bash tools/install-lean.sh
 
@@ -50,6 +51,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends shellcheck jq
+
+      - name: Restore the public verifier capsule
+        if: matrix.shard == 'audit'
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tools/capsules
+          # The lock pins the runtime + dependency manifest. The builder revalidates every hit.
+          key: capsule-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('verify/capsule.lock', 'lean-toolchain', 'tools/capsule.py') }}
 
       - name: Run the gate shard
         run: bash tools/gate.sh --shard "$SHARD"
