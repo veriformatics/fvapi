@@ -1,6 +1,7 @@
 import Fvapi.Hash.Sha256
 import Fvapi.Json
 import Fvapi.Verify.Policy
+import Fvapi.Verify.Regex
 
 /-! The verification profile (`docs/contracts/U2-trust.md` P2, schema 1): parsed from its JSON
 with every problem named by its field path, the run-set rule per scope, and the id rule. Host
@@ -126,8 +127,25 @@ def sha256 (path : String) (v : Value) : Read String := do
 def pinned (path : String) (v : Value) (optional : List String := []) : Read Pinned := do
   let ms ← members path v
   keys path ms ["executable", "sha256"] optional
-  return ⟨← str (join path "executable") (← get path ms "executable"),
-    ← sha256 (join path "sha256") (← get path ms "sha256")⟩
+  let exe ← str (join path "executable") (← get path ms "executable")
+  -- The hashed file and the executed one must be one file: no working-directory-relative path.
+  unless exe.startsWith "/" || exe.startsWith "{lean_prefix}/" do
+    throw ⟨join path "executable", exe ++ " is neither absolute nor under {lean_prefix}"⟩
+  return ⟨exe, ← sha256 (join path "sha256") (← get path ms "sha256")⟩
+
+/-- The canary pins: `{source_repo, source_commit (40 hex), set_sha256, known_sha256,
+files {name: sha256}}` (bytes join with the capsule, U2 part B). -/
+def canaries (v : Value) : Read Unit := do
+  let ms ← members "canaries" v
+  keys "canaries" ms ["source_repo", "source_commit", "set_sha256", "known_sha256", "files"] []
+  let _ ← str "canaries.source_repo" (← get "canaries" ms "source_repo")
+  let commit ← str "canaries.source_commit" (← get "canaries" ms "source_commit")
+  unless commit.length == 40 && commit.all (fun c => c.isDigit || ('a' ≤ c && c ≤ 'f')) do
+    throw ⟨"canaries.source_commit", "not 40 lowercase hex digits"⟩
+  let _ ← sha256 "canaries.set_sha256" (← get "canaries" ms "set_sha256")
+  let _ ← sha256 "canaries.known_sha256" (← get "canaries" ms "known_sha256")
+  for (name, d) in ← members "canaries.files" (← get "canaries" ms "files") do
+    let _ ← sha256 s!"canaries.files.{name}" d
 
 def mapped (path : String) : Value → Read Mapped
   | .str "accept" => pure .accept
@@ -142,6 +160,22 @@ def statusMap (path : String) (v : Value) : Read (List (Nat × Mapped)) := do
     unless code ≤ 255 && toString code == k do throw ⟨join path k, "not an exit code"⟩
     return (code, ← mapped (join path k) m)
 
+def hasPlaceholder (s placeholder : String) : Bool := (s.splitOn placeholder).length > 1
+
+mutual
+def templateHasExport : Value → Bool
+  | .str s => hasPlaceholder s "{export}"
+  | .arr xs => templatesHaveExport xs
+  | .obj ms => membersHaveExport ms
+  | _ => false
+def templatesHaveExport : List Value → Bool
+  | [] => false
+  | v :: vs => templateHasExport v || templatesHaveExport vs
+def membersHaveExport : List (String × Value) → Bool
+  | [] => false
+  | (_, v) :: ms => templateHasExport v || membersHaveExport ms
+end
+
 def kernel (path : String) (v : Value) : Read KernelSpec := do
   let ms ← members path v
   keys path ms ["name", "executable", "sha256", "args", "timeout_ms", "status_map"]
@@ -152,15 +186,29 @@ def kernel (path : String) (v : Value) : Read KernelSpec := do
     match (Value.obj ms).get? key with
     | some s => some <$> str (join path key) s
     | none => pure none
+  let args ← strs (join path "args") (← get path ms "args")
+  let configTemplate := (Value.obj ms).get? "config_template"
+  unless args.any (hasPlaceholder · "{export}") ||
+      (args.any (hasPlaceholder · "{config}") &&
+        (configTemplate.map templateHasExport).getD false) do
+    throw ⟨join path "args", "must reach {export} directly or through {config}'s template"⟩
+  let timeoutMs ← nat (join path "timeout_ms") (← get path ms "timeout_ms")
+  unless timeoutMs > 0 do throw ⟨join path "timeout_ms", "must be positive"⟩
+  let declinePattern ← opt "decline_pattern"
+  let crashPattern ← opt "crash_pattern"
+  for (key, pattern) in [("decline_pattern", declinePattern), ("crash_pattern", crashPattern)] do
+    if let some pattern := pattern then
+      match Regex.compile pattern with
+      | .error e => throw ⟨join path key, e⟩
+      | .ok parsed =>
+        if key == "decline_pattern" && parsed.captures != 1 then
+          throw ⟨join path key, "must have one feature capture"⟩
   return {
     id
     pinned := ← pinned path (.obj (ms.filter fun m => m.1 == "executable" || m.1 == "sha256"))
-    args := ← strs (join path "args") (← get path ms "args")
-    timeoutMs := ← nat (join path "timeout_ms") (← get path ms "timeout_ms")
+    args, timeoutMs
     statusMap := ← statusMap (join path "status_map") (← get path ms "status_map")
-    declinePattern := ← opt "decline_pattern"
-    crashPattern := ← opt "crash_pattern"
-    configTemplate := (Value.obj ms).get? "config_template" }
+    declinePattern, crashPattern, configTemplate }
 
 end Read
 
@@ -190,11 +238,19 @@ def parseProfile (v : Value) : Read Profile := do
   let kernels ← match ← Read.get "" ms "kernels" with
     | .arr xs => xs.mapIdxM fun i k => Read.kernel s!"kernels[{i}]" k
     | _ => throw ⟨"kernels", "not an array"⟩
+  -- Values the pinned tools + the fixed P1 policy implement: anything else describes other tools.
+  let exportFormat ← Read.str "export_format" (← Read.get "" ms "export_format")
+  unless exportFormat == "fvapi.export.v1" do
+    throw ⟨"export_format", s!"{exportFormat} is not fvapi.export.v1"⟩
+  let policyVersion ← Read.nat "policy_version" (← Read.get "" ms "policy_version")
+  unless policyVersion == 1 do throw ⟨"policy_version", s!"{policyVersion} is not policy 1"⟩
+  let canaries ← Read.get "" ms "canaries"
+  Read.canaries canaries
   return {
     id
     toolchain := ← Read.str "toolchain" (← Read.get "" ms "toolchain")
     runtimeSha256 := ← Read.sha256 "runtime.sha256" (← Read.get "runtime" runtime "sha256")
-    exportFormat := ← Read.str "export_format" (← Read.get "" ms "export_format")
+    exportFormat
     exporter := ← Read.pinned "exporter" (← Read.get "" ms "exporter")
     comparator := ← Read.pinned "comparator"
       (.obj (cms.filter fun m => m.1 == "executable" || m.1 == "sha256"))
@@ -202,8 +258,8 @@ def parseProfile (v : Value) : Read Profile := do
     comparatorSourceSha256 :=
       ← Read.sha256 "comparator.source_sha256" (← Read.get "comparator" cms "source_sha256")
     comparatorTargets := ← Read.strs "comparator.targets" (← Read.get "comparator" cms "targets")
-    canaries := ← Read.get "" ms "canaries"
-    policyVersion := ← Read.nat "policy_version" (← Read.get "" ms "policy_version")
+    canaries
+    policyVersion
     exportMs := ← Read.nat "caps.export_ms" (← Read.get "caps" caps "export_ms")
     comparatorMs := ← Read.nat "caps.comparator_ms" (← Read.get "caps" caps "comparator_ms")
     memoryBytes := ← Read.nat "caps.memory_bytes" (← Read.get "caps" caps "memory_bytes")

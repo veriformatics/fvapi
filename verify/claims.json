@@ -21,7 +21,7 @@
         "Fvapi.Verify.Policy"
       ],
       "reviewed_surface_budget": 40,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Verify.verdict"
       ]
@@ -39,7 +39,7 @@
         "Fvapi.Verify.Policy"
       ],
       "reviewed_surface_budget": 40,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Verify.accepting"
       ]
@@ -57,7 +57,7 @@
         "Fvapi.Verify.Profile"
       ],
       "reviewed_surface_budget": 40,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Verify.runSetOk"
       ]
@@ -75,7 +75,7 @@
         "Fvapi.Json.Decode"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.decode"
       ]
@@ -93,7 +93,7 @@
         "Fvapi.Json.Decode"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.decode"
       ]
@@ -111,7 +111,7 @@
         "Fvapi.Json.Decode"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.decode"
       ]
@@ -129,7 +129,7 @@
         "Fvapi.Json.Print"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.print"
       ]
@@ -147,7 +147,7 @@
         "Fvapi.Json.Print"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.print"
       ]
@@ -166,7 +166,7 @@
         "Fvapi.Json.Print"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.print",
         "Fvapi.Json.decode"
@@ -185,7 +185,7 @@
         "Fvapi.Json.Print"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.print"
       ]
@@ -203,7 +203,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.Value.object"
       ]
@@ -221,7 +221,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.Value.get?"
       ]
@@ -239,7 +239,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 400,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Json.Value.asBool?",
         "Fvapi.Json.Value.asInt?",
@@ -261,7 +261,7 @@
         "Fvapi.Hash.Sha256"
       ],
       "reviewed_surface_budget": 40,
-      "expected_snapshot": "pending: P3 materializes it",
+      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
       "shipped_call_paths": [
         "Fvapi.Hash.hex"
       ]

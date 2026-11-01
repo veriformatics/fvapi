@@ -127,16 +127,25 @@ profile() { bash tools/check-profile.sh; }
 
 # verify/claims.json ↔ the elaborated closed claims, proof types, call paths, matrix rows (U2 P4).
 inventory() {
-    lake build FvapiProofs >/dev/null 2>&1 || {
-        printf 'inventory: FvapiProofs does not build\n' >&2
+    lake build FvapiProofs Fvapi Main >/dev/null 2>&1 || {
+        printf 'inventory: audit + production roots do not build\n' >&2
         return 1
     }
     lake env lean --run tools/lean/Inventory.lean
 }
 
-# tester-2's blind U2 black-box suite against the built CLI: the profile group (152 cases); the
-# replay + inventory groups join once `fvapi dev replay` exists.
-blackbox() { bash TestsU2/run-blackbox.sh profile; }
+# Blind U2 groups (152/25/19) + input (1), process-tree (2), subtree (1), worker (4) controls.
+blackbox() {
+    local rc=0
+    bash TestsU2/run-blackbox.sh profile || rc=1
+    bash TestsU2/run-blackbox.sh replay || rc=1
+    bash TestsU2/run-blackbox.sh inventory || rc=1
+    bash tests/replay/inventory-copy.sh || rc=1
+    bash tests/replay/process-tree.sh || rc=1
+    bash tests/replay/proof-subtree.sh || rc=1
+    bash tests/replay/blackbox-workers.sh || rc=1
+    return $rc
+}
 
 # tester-3's blind U3 suite (codec + SHA-256 vs its independent oracle, NIST vectors, resources).
 tests_u3() { bash TestsU3/run.sh all; }

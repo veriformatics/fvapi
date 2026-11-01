@@ -123,7 +123,7 @@ def prepare(args):
             mode = (modes or {}).get(name, "accept")
             profile["kernels"].append({
                 "name": name, "executable": str(executable), "sha256": sha(executable),
-                "args": [mode, name], "timeout_ms": 400 if mode == "timeout" else 2000,
+                "args": [mode, name, "{export}"], "timeout_ms": 400 if mode == "timeout" else 2000,
                 "status_map": {"0": "accept", "3": "reject", "4": "decline"},
                 "decline_pattern": "^UNSUPPORTED:(.*)$",
             })
