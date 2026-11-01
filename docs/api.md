@@ -51,7 +51,7 @@ Candidates = entries whose proven targets satisfy every supplied key. Coverage f
 
 `catalog` · `show ID` · `lookup [--spec ID] [--sha256 H] [--digest D]` · `fetch ID|SHA -o DIR` · `verify DIR --challenge FILE [--axioms a,b,c]` · `check ID INPUT --spec S --revision R [--verify] [--require-certificate]` · `request FILE [--sha256 H] [--note T]` · `digest FILE [THEOREM]` · `rows [sync|claim ID|release ID|decline ID REASON|resolve ID FILE]` · `me` · `mcp` · `serve` · `admin admit …`.
 
-Exit codes: 0 success (hit, PASS, accept with `coverage: full`) · 1 verification FAIL (caller-side `fail`, `verification.status: failed`, or `--require-certificate` with a `compiled_evaluation` answer) · 2 usage · 3 miss · 4 checker reject with `coverage: full` · 5 transport or server error · 6 unsupported (unknown required feature) · 7 partial (`coverage: partial`, any verdict) — a partial answer never maps to a success code.
+Exit codes: 0 success (hit, PASS, accept with `coverage: full`) · 1 verification FAIL (caller-side `fail`, `verification.status: failed`, or `--require-certificate` with a `compiled_evaluation` answer) · 2 usage · 3 miss · 4 checker reject with `coverage: full` · 5 transport or server error · 6 unsupported (unknown required feature) · 7 partial (`coverage: partial`, any verdict) — a partial answer never maps to a success code. Precedence when several apply to one check answer: 1 (verification failed, or `--require-certificate` unmet) > 7 (partial) > the verdict (0 accept, 4 reject); 5 + 6 arise before any answer exists.
 
 ## MCP (`fvapi mcp`, stdio JSON-RPC)
 
