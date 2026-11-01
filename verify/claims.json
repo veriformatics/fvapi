@@ -61,6 +61,210 @@
       "shipped_call_paths": [
         "Fvapi.Verify.runSetOk"
       ]
+    },
+    {
+      "id": "decode-exact",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.DecodeExact",
+      "proof": "FvapiProof.Json.decode_exact",
+      "proof_module": "FvapiProof.Json.Decode",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Decode"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.decode"
+      ]
+    },
+    {
+      "id": "decode-valid",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.DecodeValid",
+      "proof": "FvapiProof.Json.decode_valid",
+      "proof_module": "FvapiProof.Json.Decode",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Decode"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.decode"
+      ]
+    },
+    {
+      "id": "text-unique",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.TextUnique",
+      "proof": "FvapiProof.Json.text_unique",
+      "proof_module": "FvapiProof.Json.Decode",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Decode"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.decode"
+      ]
+    },
+    {
+      "id": "print-exact",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.PrintExact",
+      "proof": "FvapiProof.Json.print_exact",
+      "proof_module": "FvapiProof.Json.Print",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Print"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.print"
+      ]
+    },
+    {
+      "id": "round-trip",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.RoundTrip",
+      "proof": "FvapiProof.Json.round_trip",
+      "proof_module": "FvapiProof.Json.Print",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Print"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.print"
+      ]
+    },
+    {
+      "id": "print-decode",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.PrintDecode",
+      "proof": "FvapiProof.Json.print_decode",
+      "proof_module": "FvapiProof.Json.Corollaries",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Decode",
+        "Fvapi.Json.Print"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.print",
+        "Fvapi.Json.decode"
+      ]
+    },
+    {
+      "id": "canonical-injective",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.CanonicalInjective",
+      "proof": "FvapiProof.Json.canonical_injective",
+      "proof_module": "FvapiProof.Json.Corollaries",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Print"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.print"
+      ]
+    },
+    {
+      "id": "object-law",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.ObjectLaw",
+      "proof": "FvapiProof.Json.object_law",
+      "proof_module": "FvapiProof.Json.Access",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Value"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.Value.object"
+      ]
+    },
+    {
+      "id": "get-law",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.GetLaw",
+      "proof": "FvapiProof.Json.get_law",
+      "proof_module": "FvapiProof.Json.Access",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Value"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.Value.get?"
+      ]
+    },
+    {
+      "id": "as-laws",
+      "domain": "Json",
+      "spec_module": "FvapiSpec.Json",
+      "claim_module": "FvapiSelf.Json",
+      "claim": "FvapiSelf.Json.AsLaws",
+      "proof": "FvapiProof.Json.as_laws",
+      "proof_module": "FvapiProof.Json.Access",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Json.Value"
+      ],
+      "reviewed_surface_budget": 400,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Json.Value.asBool?",
+        "Fvapi.Json.Value.asInt?",
+        "Fvapi.Json.Value.asStr?",
+        "Fvapi.Json.Value.asArr?",
+        "Fvapi.Json.Value.asObj?"
+      ]
+    },
+    {
+      "id": "hex-exact",
+      "domain": "Hash",
+      "spec_module": "FvapiSpec.Hash",
+      "claim_module": "FvapiSelf.Hash",
+      "claim": "FvapiSelf.Hash.HexExact",
+      "proof": "FvapiProof.Hash.hex_exact",
+      "proof_module": "FvapiProof.Hash",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Hash.Sha256"
+      ],
+      "reviewed_surface_budget": 40,
+      "expected_snapshot": "pending: P3 materializes it",
+      "shipped_call_paths": [
+        "Fvapi.Hash.hex"
+      ]
     }
   ]
 }
