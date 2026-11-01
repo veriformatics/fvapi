@@ -195,6 +195,25 @@ probe profile-id plant_id "!= recomputed" profile_stage
 plant_runtime() { jq_edit '.runtime.sha256 = ("0" * 64)'; }
 probe profile-runtime plant_runtime "runtime manifest" profile_stage
 
+# inventory: a dropped row; a wrong proof type; a non-production call path; a missing matrix row;
+# a closed-claim module importing another domain's claims.
+inventory_stage() { bash -c 'source tools/gate.sh; inventory'; }
+claims_edit() { jq "$1" verify/claims.json >verify/claims.tmp && mv verify/claims.tmp verify/claims.json; }
+plant_row() { claims_edit 'del(.claims[1])'; }
+probe inventory-row plant_row "with 0 inventory rows" inventory_stage
+plant_proof() { claims_edit '.claims[0].proof = "FvapiProof.Policy.accepting_exact"'; }
+probe inventory-proof plant_proof "does not have type exactly" inventory_stage
+plant_path() { claims_edit '.claims[0].shipped_call_paths = ["FvapiSpec.Policy.Pass"]'; }
+probe inventory-path plant_path "not a definition in a production module" inventory_stage
+# shellcheck disable=SC2016  # backticks are literal Markdown here
+plant_matrix_row() { sed -i 's/`policy-exact`/`policy-gone`/' docs/obligations.md; }
+probe inventory-matrix plant_matrix_row "no row in" inventory_stage
+plant_locality() {
+    printf 'import FvapiSelf.Policy\n\nnamespace FvapiSelf.Probe\n\ndef ProbeClaim : Prop := True\n\nend FvapiSelf.Probe\n' >FvapiSelf/Probe.lean
+    printf 'import FvapiSelf.Probe\n' >>FvapiProofs.lean
+}
+probe inventory-locality plant_locality "claims stay domain-local" inventory_stage
+
 # lean-style: a tab in a Lean source.
 plant_tab() { printf '\t-- tab\n' >>Fvapi/Version.lean; }
 probe lean-style plant_tab ": tab" bash tools/lean-style.sh
