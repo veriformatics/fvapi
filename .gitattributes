@@ -1,0 +1,2 @@
+# Vendored upstream bytes are pinned by sha256 (tools/check-vendor.sh): never normalize them.
+vendor/** -text linguist-vendored

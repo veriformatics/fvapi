@@ -1,0 +1,23 @@
+{
+  "upstream": "https://github.com/hacl-star/hacl-star",
+  "commit": "f557259007db9933442dde10aa995c1b00bd3446",
+  "files": {
+    "LICENSE": "c5accbbd8546e94c34aed24afe689a617627d18eed5a6c48277e48db57c23851",
+    "dist/LICENSE.txt": "998ce04fb8ad9dedb0bc1b44938f8c3dcf1089780fa105ce1c8c30fb5554d78c",
+    "dist/gcc-compatible/Hacl_Hash_SHA2.c": "5b34672d592299b6557051c905b453cc968981f0e6529e6c48a12e43434aa273",
+    "dist/gcc-compatible/Hacl_Hash_SHA2.h": "616685799d2d029411ec8fe5c15aaedd481ecd75edf29161b12cf3d9f20b7d4c",
+    "dist/gcc-compatible/Hacl_Krmllib.h": "5bc854fe08765681fa241b51460e7a0107fc3ebc4f8db21435656c515e5937d5",
+    "dist/gcc-compatible/Hacl_Streaming_Types.h": "efc7bd11460744768425aedf4e004d3ad3397a5489752b80044ae785f30b78d4",
+    "dist/gcc-compatible/internal/Hacl_Hash_SHA2.h": "709c6272f77e2368f6cc0bf36527e3b16dd5d5f3dc26a2afdef8238200af8770",
+    "dist/gcc-compatible/internal/Hacl_Krmllib.h": "d0f85cc010234fddd2e9c5c60be458b5498e5b754bc1902328005a958a99b357",
+    "dist/gcc-compatible/internal/Hacl_Streaming_Types.h": "76997c7069a347ac78b65d26354a0324d54add4ca7a02e7be36d6d5e1c9702e0",
+    "dist/karamel/include/krml/internal/compat.h": "c5a04a1f99807cea29ac1832ba17d8a3d3805862d3a713642583be2106e04edb",
+    "dist/karamel/include/krml/internal/target.h": "b2bf3987517cc52bb759679af1c7419ce54afc846766668f0ca5e321653b0fc2",
+    "dist/karamel/include/krml/internal/types.h": "ea6fc7766230993ddea9b2e9b537323a337eb1752eb80fc74303ebb5b03e897e",
+    "dist/karamel/include/krml/lowstar_endianness.h": "e04c778323be6ea171d0225b70fde1599f2d690e44d28860d8fe1dc3b5146f0a",
+    "dist/karamel/krmllib/dist/minimal/FStar_UInt128.h": "be115d2ee6ba250d3af2c0d5173531833d43bba3c57d4b4a9ffc7d0317906960",
+    "dist/karamel/krmllib/dist/minimal/FStar_UInt_8_16_32_64.h": "8c625eb24fe5cba899cf4c5030aa5929ae19c77a13f2089b086d7ce2c66081e7",
+    "dist/karamel/krmllib/dist/minimal/LowStar_Endianness.h": "c21cfe74bcbab804fc7a1e112e070ae7e70a0446106b7c77d651a517ee19631e",
+    "dist/karamel/krmllib/dist/minimal/fstar_uint128_gcc64.h": "dd608b8d1cd2cc8398f8c36a0684d42d2d7d8a304b67d2dda298389521f5a18f"
+  }
+}

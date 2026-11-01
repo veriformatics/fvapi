@@ -29,6 +29,8 @@ prototype/fvapi/seed.local.json
 # Python build + tool output
 build/
 dist/
+# Vendored upstream source (pinned by vendor/*/lock.json), not build output
+!vendor/**/dist/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/

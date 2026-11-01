@@ -51,13 +51,14 @@ secrets     checks
 workflows   checks
 fanout      checks
 deps        checks
+vendor      checks
 renovate    checks
 meta        checks
 '
 
 # The iteration subset tools/fast-gate.sh runs (build-consuming stages after lean-build).
 # shellcheck disable=SC2034
-FAST_STAGES='lean-style imports spec shell fanout deps renovate meta lean-build lean-test cli'
+FAST_STAGES='lean-style imports spec shell fanout deps vendor renovate meta lean-build lean-test cli'
 
 # Every shard STAGES names, once each, in first-use order.
 shard_names() { awk 'NF { for (i = 2; i <= NF; i++) if (!seen[$i]++) print $i }' <<<"$STAGES"; }
@@ -211,6 +212,9 @@ fanout() {
 # Every pin (lean-toolchain, tools/tools.lock, workflow actions, Lake packages) has a row in
 # docs/dependencies.md naming its update path + scanner.
 deps() { bash tools/check-deps.sh; }
+
+# Vendored upstream C (HACL*) = its lock, byte for byte, nothing extra (U3 contract S1).
+vendor() { bash tools/check-vendor.sh; }
 
 # Renovate's custom managers extract every pin they own (lean-toolchain, tools/tools.lock, a Lake
 # manifest), and the lock file keeps one coherent version per tool.

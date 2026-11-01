@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Every pinned dependency has a row in docs/dependencies.md (`name` in backticks) naming its update
 # path + scanner: the Lean toolchain, each tools/tools.lock tool, each workflow action, each Lake
-# package. Prints each missing name.
+# package, each vendored upstream (vendor/*/lock.json). Prints each missing name.
 set -uo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,6 +16,7 @@ mapfile -t names < <(
     awk '!/^#/ && NF == 5 { print $1 }' tools/tools.lock
     sed -n 's#^ *- *uses: \([^@ ]*\)@.*#\1#p; s#^ *uses: \([^@ ]*\)@.*#\1#p' .github/workflows/*.yml
     if [[ -f lake-manifest.json ]]; then jq -r '.packages[]?.name' lake-manifest.json; fi
+    for l in vendor/*/lock.json; do [[ -f $l ]] && jq -r '.upstream | sub("^https://github.com/"; "")' "$l"; done
 )
 rc=0
 for n in $(printf '%s\n' "${names[@]}" | sort -u); do
