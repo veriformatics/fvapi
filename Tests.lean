@@ -1,6 +1,7 @@
 import Fvapi
 
 open Fvapi.Cli
+open Fvapi.Verify
 
 /-- One case: its name, whether it held, and its wall-clock in milliseconds. -/
 structure Outcome where
@@ -27,6 +28,29 @@ def main : IO UInt32 := do
     check "cli: an unknown command prints usage on stderr, rc 2" fun _ =>
       dispatch ["frobnicate"] == ⟨.stderr, usage, 2⟩ &&
         dispatch ["--version", "x"] == ⟨.stderr, usage, 2⟩
+    -- Kernel policy controls (docs/contracts/U2-trust.md P1).
+  , check "policy: leanchecker accept + five valid declines fails (no independent accept)" fun _ =>
+      verdict [⟨.leanchecker, .accept⟩, ⟨.leancheckerParanoid, .decline "f"⟩,
+        ⟨.lean4lean, .decline "f"⟩, ⟨.nanoda, .decline "f"⟩, ⟨.conLeche, .decline "f"⟩,
+        ⟨.conRon, .decline "f"⟩] == .fail,
+    check "policy: the three lean-lineage kernels accept + three valid declines fails" fun _ =>
+      verdict [⟨.leanchecker, .accept⟩, ⟨.leancheckerParanoid, .accept⟩, ⟨.lean4lean, .accept⟩,
+        ⟨.nanoda, .decline "f"⟩, ⟨.conLeche, .decline "f"⟩, ⟨.conRon, .decline "f"⟩] == .fail,
+    check "policy: leanchecker accept + nanoda accept passes" fun _ =>
+      verdict [⟨.leanchecker, .accept⟩, ⟨.nanoda, .accept⟩] == .pass,
+    check "policy: missing leanchecker fails" fun _ =>
+      verdict [⟨.nanoda, .accept⟩, ⟨.conLeche, .accept⟩] == .fail,
+    check "policy: any timeout, crash or reject fails" fun _ =>
+      [KernelStatus.timeout, .crash, .reject].all fun s =>
+        verdict [⟨.leanchecker, .accept⟩, ⟨.nanoda, .accept⟩, ⟨.conRon, s⟩] == .fail,
+    check "policy: empty result list fails" fun _ => verdict [] == .fail,
+    check "policy: a blank or whitespace decline feature fails" fun _ =>
+      ["", " ", "\t "].all fun f =>
+        verdict [⟨.leanchecker, .accept⟩, ⟨.nanoda, .accept⟩, ⟨.conRon, .decline f⟩] == .fail,
+    check "policy: accepting lists accepting kernels once each, in profile order" fun _ =>
+      accepting [.conRon, .leanchecker, .nanoda]
+        [⟨.nanoda, .accept⟩, ⟨.leanchecker, .accept⟩, ⟨.conRon, .decline "x"⟩] ==
+        [.leanchecker, .nanoda]
   ].mapM id
   let failed := (results.filter (!·.ok)).length
   match results.foldl (fun acc r => if r.ms ≥ acc.ms then r else acc) ⟨"", true, 0⟩ with

@@ -12,3 +12,8 @@ Rows = each unit's fixed check set, opened before its diff is read; status `open
 | U1 | altitude lens: no special case on shared infrastructure | pass | signal + SIGPIPE handling set on the unit type, not per command; tool identity in fetch-tools, not per stage |
 | U1 | security lens (MAIN): remote command composition, sudo `systemd-run`, workflow token + secrets, pinned downloads | pass | workspace id restricted to `[A-Za-z0-9._-]` before reaching the sudo command line; the command runs as `eturkes` (`--uid`), only unit creation is privileged; CI token `contents: read`, `persist-credentials: false`, no secrets, actions digest-pinned; scanner + elan-init + Node downloads sha256-pinned; residual: the Lean toolchain itself is fetched by elan from GitHub releases without a hash pin (as in fvTrace) |
 | U1 | stack mutation tool: `fvamut` (pinned capsule, U2) over `Fvapi/Cli.lean` + `Tests.lean`, survivors ruled | open | U2 brings the capsule; the manual mutants above are interim evidence |
+| U2 | contract: every P1–P7 predicate + the acceptance matrix of `docs/contracts/U2-trust.md` evidenced by a run, proof or planted probe | open | A = P1–P4, B = P5–P7 |
+| U2 | tester-2 blind suite (differential oracle for `verdict`, profile id golden, replay CLI) merged red → green | open | wt/tester-2 |
+| U2 | mutation credit for the policy tests + U1's CLI tests via fvamut (P7) | open | |
+| U2 | correctness / cleanup / altitude lenses on each U2 commit | open | |
+| U2 | security lens (MAIN): subprocess + tool invocation, status parsing, capsule acquisition | open | |

@@ -171,6 +171,10 @@ probe tool-identity plant_marker "corrupt cached binary replaced" cached_tool
 plant_import() { sed -i '1i import Lean' Fvapi/Cli.lean; }
 probe imports plant_import "import Lean" bash tools/check-imports.sh
 
+# imports: a shipped module importing the audit tree (U2: Fvapi/** never imports FvapiSpec/Self/Proof).
+plant_audit_import() { sed -i '1i import FvapiSpec.Policy' Fvapi/Cli.lean; }
+probe imports-audit-tree plant_audit_import "import FvapiSpec.Policy" bash tools/check-imports.sh
+
 # lean-style: a tab in a Lean source.
 plant_tab() { printf '\t-- tab\n' >>Fvapi/Version.lean; }
 probe lean-style plant_tab ": tab" bash tools/lean-style.sh

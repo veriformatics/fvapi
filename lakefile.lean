@@ -14,6 +14,11 @@ package fvapi where
 
 lean_lib Fvapi
 
+/-- Audit tree (never imported by shipped code): reviewed vocabulary, closed claims, proofs. -/
+lean_lib FvapiProofs where
+  globs := #[.one `FvapiProofs, .submodules `FvapiSpec, .submodules `FvapiSelf,
+    .submodules `FvapiProof]
+
 @[default_target]
 lean_exe fvapi where
   root := `Main
