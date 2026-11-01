@@ -46,7 +46,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 ## Tasks
 
 - [x] 41b46e9 U1 Foundation: Lake package; vflab gate slice + isolated workspaces + `tools/vflab-run` + `tools/{gate,fast-gate,gate-probe}.sh` (rc propagation proven); secret-free CI + CodeQL + Renovate custom managers + per-dependency scanner table; `.agent/review.md`; `.claude/rules/{gate,tiers}.md`; gate timings cold/warm/no-op/edit; janitor
-- [ ] U2 Verification profile + trust harness: versioned profile, kernel-policy module, per-claim replay runner, pinned verifier capsule (`fva trust` + `fvamut`), claim inventory + obligation matrix, mutation credit, compatibility fixtures
+- [ ] U2 Verification profile + trust harness: versioned profile, kernel-policy module, per-claim replay runner, pinned verifier capsule (`fva trust` + `fvamut`), claim inventory + obligation matrix, mutation credit, compatibility fixtures; in flight: P1, P2 stage + P4 committed; P2 reader + P3 replay need U3's Std-only JSON codec → U3 next, then U2 resumes
 - [ ] U3 Codecs: JSON profile (decoder sound + complete, canonical print), wire types, HACL* SHA-256, fsync shim
 - [ ] U4 Store: versioned envelopes, revisions + typed targets, rows (origin vs attempts), request records, single writer (bounded queue, durability boundary, benchmark), receipts, path safety
 - [ ] U5 Lookup: indexed discovery ≡ filter + ranking (coverage, newest, id), key agreement, paged other matches, `statement_digest`
@@ -65,6 +65,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [ ] U18 Privacy design: `docs/privacy.md`
 - [ ] U19 Docs + retirement: README, SECURITY.md, `docs/api.md` final; prototype tag + `git rm` + live prototype service removed
 - [ ] U20 Close: review ledger adjudicated, spec current, `Phase: MAINTAIN — whole product`
+- [ ] U2 blind suite `TestsU2/` (from the frozen U2 contract): P1 policy suites run in `lean-test`; 196 black-box cases (profile 152, replay 25, inventory 19; `bash TestsU2/run-blackbox.sh`) stay red + outside the gate until `fvapi dev profile|replay|inventory` land, then join it
 - [ ] Acceptance suite `wt/tester-1` @ 0c36327 (blind, from `Intent` + `Decisions` + `docs/api.md`): 114 cases, 114 unmerged; each unit merges the tests it turns green; assumptions A1–A17 await rulings into `docs/api.md`
 - Deferred queue → `.agent/deferred.md`
 

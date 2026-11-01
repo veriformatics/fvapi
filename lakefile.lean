@@ -25,3 +25,10 @@ lean_exe fvapi where
 
 lean_exe «fvapi-tests» where
   root := `Tests
+
+/-- Blind U2 suite: the shipped kernel policy vs an independent oracle. -/
+lean_lib TestsU2 where
+  globs := #[.submodules `TestsU2]
+
+lean_exe «fvapi-tests-u2» where
+  root := `TestsU2.Policy

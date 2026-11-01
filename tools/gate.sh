@@ -99,9 +99,15 @@ lean_style() { bash tools/lean-style.sh; }
 
 # Every target; `warningAsError` turns lints into failures, `autoImplicit` off rejects implicit
 # variables (probes plant both).
-lean_build() { lake build Fvapi FvapiProofs fvapi «fvapi-tests»; }
+lean_build() { lake build Fvapi FvapiProofs TestsU2 fvapi «fvapi-tests» «fvapi-tests-u2»; }
 
-lean_test() { lake test; }
+# The driver's cases, then the blind U2 policy suite (exhaustive differential vs its oracle).
+lean_test() {
+    local rc=0
+    lake test || rc=1
+    lake exe «fvapi-tests-u2» all || rc=1
+    return $rc
+}
 
 # The shipped binary end to end: output streams + exit codes (docs/api.md).
 cli() { bash tests/cli/smoke.sh "$root/.lake/build/bin/fvapi"; }
