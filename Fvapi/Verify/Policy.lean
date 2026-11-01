@@ -64,8 +64,8 @@ def verdict (rs : List KernelResult) : Verdict :=
       rs.all (fun r => r.status.admissible) then .pass
   else .fail
 
-/-- The accepting kernels, once each, in profile order. -/
+/-- The accepting kernels, once each (a repeated profile entry counts once), in profile order. -/
 def accepting (order : List KernelId) (rs : List KernelResult) : List KernelId :=
-  order.filter fun k => rs.any fun r => r.kernel == k && accepted r
+  order.eraseDups.filter fun k => rs.any fun r => r.kernel == k && accepted r
 
 end Fvapi.Verify
