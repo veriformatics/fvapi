@@ -1,0 +1,6 @@
+# actionlint 1.7.12 (latest release; its label table predates the ubuntu-26.04 GA images, upstream
+# issue rhysd/actionlint#682) rejects that GitHub-hosted label. Declared here so every other label
+# stays checked; drop the entry once an actionlint release knows the label.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04

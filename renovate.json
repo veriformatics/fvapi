@@ -1,0 +1,56 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "minimumReleaseAge": "7 days",
+  "rangeStrategy": "pin",
+  "packageRules": [
+    {
+      "description": "A Lean bump replays the verification profile's compatibility corpus (Decisions \u2192 Verification profile + gate)",
+      "matchPackageNames": [
+        "leanprover/lean4"
+      ],
+      "groupName": "Lean toolchain"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Lean toolchain (lean-toolchain)",
+      "managerFilePatterns": [
+        "/^lean-toolchain$/"
+      ],
+      "matchStrings": [
+        "leanprover/lean4:v(?<currentValue>\\S+)"
+      ],
+      "depNameTemplate": "leanprover/lean4",
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Pinned scanner binaries (tools/tools.lock); the digest column needs tools/pin-tool.sh",
+      "managerFilePatterns": [
+        "/^tools/tools\\.lock$/"
+      ],
+      "matchStrings": [
+        "(?:^|\\n)(?<depName>\\S+) (?<currentValue>\\S+) linux-x86_64 \\S+ https://github\\.com/(?<packageName>[^/]+/[^/]+)/"
+      ],
+      "datasourceTemplate": "github-releases",
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Lake packages (lake-manifest.json): git rev of a GitHub package, tracking its inputRev tag",
+      "managerFilePatterns": [
+        "/^lake-manifest\\.json$/"
+      ],
+      "matchStrings": [
+        "\"url\":\\s*\"https://github\\.com/(?<packageName>[^\"]+?)(?:\\.git)?\",[\\s\\S]*?\"rev\":\\s*\"(?<currentDigest>[0-9a-f]{40})\",[\\s\\S]*?\"name\":\\s*\"(?<depName>[^\"]+)\",[\\s\\S]*?\"inputRev\":\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "github-tags"
+    }
+  ]
+}

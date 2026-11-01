@@ -1,0 +1,7 @@
+# Pinned tool binaries (the scanners + elan-init, CI's Lean installer: tools/install-lean.sh):
+# name version platform sha256 url, one line per platform; tools/fetch-tools.sh verifies each archive
+# against its sha256 before extracting it. Re-pin: bash tools/pin-tool.sh NAME VERSION.
+actionlint 1.7.12 linux-x86_64 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8 https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
+betterleaks 1.9.0 linux-x86_64 f8b185a39ffcece2a1ca82bf3a4e7435cd81963ffd16b7a9128daf75f35f6de7 https://github.com/betterleaks/betterleaks/releases/download/v1.9.0/betterleaks_1.9.0_linux_x64.tar.gz
+elan-init 4.2.4 linux-x86_64 42b94d4244e8353142c456ec0e4ca6528fd898a6c604d4059f494e706e431f63 https://github.com/leanprover/elan/releases/download/v4.2.4/elan-x86_64-unknown-linux-gnu.tar.gz
+zizmor 1.31.1 linux-x86_64 d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99 https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz
