@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "upstream": "https://github.com/veriformatics/fva",
+  "commit": "e5de229ded1e512e7da5996a5d4f0cb782b8a9a6",
+  "source_tree": "8f3ffc2b065ca9399c14796829551be848039531",
+  "toolchain": "leanprover/lean4:v4.35.0",
+  "toolchain_sha256": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+  "runtime_sha256": "953aa1e72283c07686567bb71eeb3fca202baafe2958a7e57987d3b8c4434c25",
+  "manifest_sha256": "b008fc34c70509baa5255ad8d9c768b6de2971985efd1522da91c07de4ecff3f",
+  "canary_set_sha256": "73f9e219e0d99fd1c70670e2699d6e21bbfa1686532b3a35db0395e4e518c116",
+  "canary_known_sha256": "207046a3d9473c1dbf554a25e94c77be2b3729a35af674da61dabd65e40a3bdf"
+}

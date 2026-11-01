@@ -15,7 +15,7 @@
       "groupName": "Lean toolchain"
     },
     {
-      "description": "Vendored C pins a commit on a moving branch (no release timestamps); tools/vendor-hacl.sh COMMIT relocks the file hashes in the same PR",
+      "description": "Source pins track commits without release timestamps; tools/vendor-hacl.sh or tools/pin-capsule.sh relocks dependent identities in the same PR",
       "matchDatasources": [
         "git-refs"
       ],
@@ -64,6 +64,19 @@
       "description": "Vendored upstream C (vendor/*/lock.json): the commit on main",
       "managerFilePatterns": [
         "/^vendor/[^/]+/lock\\.json$/"
+      ],
+      "matchStrings": [
+        "\"upstream\":\\s*\"https://github\\.com/(?<depName>[^\"]+)\",\\s*\"commit\":\\s*\"(?<currentDigest>[0-9a-f]{40})\""
+      ],
+      "packageNameTemplate": "https://github.com/{{{depName}}}",
+      "currentValueTemplate": "main",
+      "datasourceTemplate": "git-refs"
+    },
+    {
+      "customType": "regex",
+      "description": "Public fva verifier capsule; tools/pin-capsule.sh COMMIT relocks runtime, manifest and canary identities",
+      "managerFilePatterns": [
+        "/^verify/capsule\\.lock$/"
       ],
       "matchStrings": [
         "\"upstream\":\\s*\"https://github\\.com/(?<depName>[^\"]+)\",\\s*\"commit\":\\s*\"(?<currentDigest>[0-9a-f]{40})\""

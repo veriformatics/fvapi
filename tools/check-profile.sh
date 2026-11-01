@@ -4,7 +4,7 @@
 # --print-prefix`, the comparator source hash + its fixed target set (parsed from the installed
 # Lake/CLI/Check.lean), the toolchain runtime manifest — plus the service run set (the six
 # kernels, once each) and the profile id rule. Each difference is named; rc 1 on any.
-# Canary bytes join with the capsule (U2 part B): reported as not run until `canaries.files` exists.
+# Canary bytes are fetched from public pins and rehashed on every invocation (no capsule build).
 set -uo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -50,7 +50,8 @@ fi
 got="${FVAPI_RUNTIME_DIGEST:-$(cd "$prefix" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64)}"
 [[ "$got" == "$(jq -r .runtime.sha256 "$profile")" ]] || bad "runtime manifest $got != profile"
 
-if [[ "$(jq '.canaries.files | length' "$profile")" -eq 0 ]]; then
-    printf 'profile: not run: canary bytes (pinned by set/known hashes; bytes join with the capsule, U2 part B)\n'
+if [[ $rc -eq 0 ]]; then
+    "$root/.lake/build/bin/fvapi" dev profile --profile "$profile" --scope service --json || rc=1
 fi
+python3 -I "$root/tools/canaries.py" "$profile" >/dev/null || rc=1
 exit $rc

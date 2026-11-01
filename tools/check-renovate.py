@@ -97,6 +97,14 @@ def main() -> int:
         if got != want:
             errors.append(f"{rel}: extracted {got}, want {want}")
 
+    capsule_path = ROOT / "verify/capsule.lock"
+    capsule = json.loads(capsule_path.read_text(encoding="utf-8"))
+    want = [{"depName": capsule["upstream"].removeprefix("https://github.com/"),
+             "currentDigest": capsule["commit"]}]
+    got = extract(capsule_path, "verify/capsule.lock")
+    if got != want:
+        errors.append(f"verify/capsule.lock: extracted {got}, want {want}")
+
     for e in errors:
         print(f"renovate: {e}", file=sys.stderr)
     return 1 if errors else 0
