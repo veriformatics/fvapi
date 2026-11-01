@@ -175,7 +175,13 @@ probe imports plant_import "import Lean" bash tools/check-imports.sh
 plant_audit_import() { sed -i '1i import FvapiSpec.Policy' Fvapi/Cli.lean; }
 probe imports-audit-tree plant_audit_import "import FvapiSpec.Policy" bash tools/check-imports.sh
 
-# profile: a tampered kernel hash; a dropped comparator target; a missing kernel; a wrong id.
+# profile: a tampered kernel hash; a dropped comparator target; a missing kernel; a wrong id; a wrong
+# runtime digest. The runtime manifest (≈ 18k files) is hashed once here by the stage's own rule and
+# reused; the gate's `profile` stage hashes it in full on every run.
+if prefix="$(lean --print-prefix 2>/dev/null)"; then
+    FVAPI_RUNTIME_DIGEST="$(cd "$prefix" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64)"
+    export FVAPI_RUNTIME_DIGEST
+fi
 profile_stage() { bash tools/check-profile.sh; }
 jq_edit() { jq "$1" verify/profile.json >verify/profile.tmp && mv verify/profile.tmp verify/profile.json; }
 plant_kernel_sha() { jq_edit '.kernels[0].sha256 = ("0" * 64)'; }
@@ -186,6 +192,8 @@ plant_runset() { jq_edit 'del(.kernels[3])'; }
 probe profile-runset plant_runset "service run set" profile_stage
 plant_id() { jq_edit '.id = "sha256:" + ("0" * 64)'; }
 probe profile-id plant_id "!= recomputed" profile_stage
+plant_runtime() { jq_edit '.runtime.sha256 = ("0" * 64)'; }
+probe profile-runtime plant_runtime "runtime manifest" profile_stage
 
 # lean-style: a tab in a Lean source.
 plant_tab() { printf '\t-- tab\n' >>Fvapi/Version.lean; }

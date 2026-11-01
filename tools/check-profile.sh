@@ -46,7 +46,8 @@ else
     bad "comparator source $src missing"
 fi
 
-got="$(cd "$prefix" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64)"
+# FVAPI_RUNTIME_DIGEST = a digest the caller computed by this same rule (tools/gate-probe.sh, once per run).
+got="${FVAPI_RUNTIME_DIGEST:-$(cd "$prefix" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64)}"
 [[ "$got" == "$(jq -r .runtime.sha256 "$profile")" ]] || bad "runtime manifest $got != profile"
 
 if [[ "$(jq '.canaries.files | length' "$profile")" -eq 0 ]]; then
