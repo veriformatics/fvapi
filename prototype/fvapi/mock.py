@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Fixture-backed stand-in for the v0 API (API.md) so console variants build before the server lands.
 
 Usage: python3 mock.py [port]  (default 8442) → http://127.0.0.1:<port>/console/<variant>/
