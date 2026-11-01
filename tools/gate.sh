@@ -44,6 +44,7 @@ cli         lean
 probes      lean
 profile     lean
 inventory   lean
+blackbox    lean
 imports     checks
 spec        checks
 shell       checks
@@ -128,6 +129,10 @@ inventory() {
     }
     lake env lean --run tools/lean/Inventory.lean
 }
+
+# tester-2's blind U2 black-box suite against the built CLI: the profile group (152 cases); the
+# replay + inventory groups join once `fvapi dev replay` exists.
+blackbox() { bash TestsU2/run-blackbox.sh profile; }
 
 # Shipped modules import Init, Std + Fvapi alone (`Decisions` → `Stack`: a Std-only server binary).
 imports() { bash tools/check-imports.sh; }

@@ -1,4 +1,5 @@
 import Fvapi.Version
+import Fvapi.Dev
 
 namespace Fvapi.Cli
 
@@ -27,6 +28,7 @@ def dispatch : List String → Reply
   | _ => ⟨.stderr, usage, 2⟩
 
 def run (args : List String) : IO UInt32 := do
+  if let "dev" :: rest := args then return ← Fvapi.Dev.run rest
   let r := dispatch args
   match r.stream with
   | .stdout => IO.print r.text
