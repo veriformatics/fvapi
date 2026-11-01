@@ -90,3 +90,15 @@ lean_lib TestsU2 where
 
 lean_exe «fvapi-tests-u2» where
   root := `TestsU2.Policy
+
+/-- Blind U3 suite (contract + independent oracle); `TestsU3.Api` is its only implementation
+import. -/
+lean_lib TestsU3 where
+  globs := #[.submodules `TestsU3]
+
+lean_exe «fvapi-tests-u3» where
+  root := `TestsU3.Main
+
+/-- The oracle's crosscheck, built without the implementation adapter. -/
+lean_exe «fvapi-tests-u3-oracle» where
+  root := `TestsU3.OracleMain
