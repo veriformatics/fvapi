@@ -15,6 +15,14 @@ def leanPrefix : IO System.FilePath := do
     throw <| IO.userError s!"lean --print-prefix failed: {out.stderr.trimAscii}"
   return out.stdout.trimAscii.toString
 
+/-- The installed toolchain as a profile names it: `lean --version` = `Lean (version 4.35.0, …)`
+→ `leanprover/lean4:v4.35.0`. -/
+def leanToolchain : IO String := do
+  let out ← IO.Process.output { cmd := "lean", args := #["--version"] }
+  let some rest := (out.stdout.splitOn "version ")[1]?
+    | throw (IO.userError s!"lean --version: unexpected output {out.stdout.trimAscii}")
+  return "leanprover/lean4:v" ++ String.ofList (rest.toList.takeWhile (· != ','))
+
 def resolve (pre : System.FilePath) (exe : String) : System.FilePath :=
   exe.replace "{lean_prefix}" pre.toString
 
@@ -72,6 +80,9 @@ def runtimeDigest (pre : System.FilePath) : IO String := do
 source + target set; the runtime manifest when `runtime` (≈ 18k files: callers opt in). -/
 def checkHost (pre : System.FilePath) (p : Profile) (runtime : Bool) : IO (List Problem) := do
   let mut problems := []
+  let installed ← leanToolchain
+  if p.toolchain != installed then
+    problems := problems ++ [⟨"toolchain", s!"{p.toolchain} != installed {installed}"⟩]
   for (k, i) in p.kernels.zipIdx do
     problems := problems ++ (← checkPinned pre s!"kernels[{i}].sha256" k.pinned)
   problems := problems ++ (← checkPinned pre "exporter.sha256" p.exporter)

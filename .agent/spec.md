@@ -46,7 +46,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 ## Tasks
 
 - [x] 41b46e9 U1 Foundation: Lake package; vflab gate slice + isolated workspaces + `tools/vflab-run` + `tools/{gate,fast-gate,gate-probe}.sh` (rc propagation proven); secret-free CI + CodeQL + Renovate custom managers + per-dependency scanner table; `.agent/review.md`; `.claude/rules/{gate,tiers}.md`; gate timings cold/warm/no-op/edit; janitor
-- [ ] U2 Verification profile + trust harness: versioned profile, kernel-policy module, per-claim replay runner, pinned verifier capsule (`fva trust` + `fvamut`), claim inventory + obligation matrix, mutation credit, compatibility fixtures; in flight: P1, P2 stage + Lean reader (`fvapi dev profile`, run-set claim), P4 committed; next P3 replay (`fvapi dev replay`), then part B
+- [ ] U2 Verification profile + trust harness: versioned profile, kernel-policy module, per-claim replay runner, pinned verifier capsule (`fva trust` + `fvamut`), claim inventory + obligation matrix, mutation credit, compatibility fixtures; in flight: part A (P1–P4) committed — `fvapi dev replay` replays all 14 own claims (export + comparator + six real kernels: 84/84 accept); next part B: P5 capsule, P6 self-audit, P7 mutation, CI shard `audit`
 - [ ] U3 Codecs: JSON profile (decoder sound + complete, canonical print), wire types, HACL* SHA-256, fsync shim; in flight: part A frozen; S (HACL* vendored, native sha256 + ASan harness) + J (decoder, printer, accessors) implemented (A1); A2 = J6 + HexExact proofs (builder-5 decoder, builder-6 printer/access/hash) + tester-3's blind suite merged; U2 resumes on the A1 codec meanwhile; then F + W details frozen → part B
 - [ ] U4 Store: versioned envelopes, revisions + typed targets, rows (origin vs attempts), request records, single writer (bounded queue, durability boundary, benchmark), receipts, path safety
 - [ ] U5 Lookup: indexed discovery ≡ filter + ranking (coverage, newest, id), key agreement, paged other matches, `statement_digest`
@@ -65,7 +65,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [ ] U18 Privacy design: `docs/privacy.md`
 - [ ] U19 Docs + retirement: README, SECURITY.md, `docs/api.md` final; prototype tag + `git rm` + live prototype service removed
 - [ ] U20 Close: review ledger adjudicated, spec current, `Phase: MAINTAIN — whole product`
-- [ ] U2 blind suite `TestsU2/` (from the frozen U2 contract): P1 policy suites run in `lean-test`; black-box profile group (152) green in stage `blackbox`; replay 25 + inventory 19 (`bash TestsU2/run-blackbox.sh replay|inventory`) stay red + outside the gate until `fvapi dev replay` lands, then join it
+- [ ] U2 blind suite `TestsU2/` (from the frozen U2 contract): P1 policy suites run in `lean-test`; all 196 black-box cases (profile 152, replay 25, inventory 19) green in stage `blackbox`
 - [ ] Acceptance suite `wt/tester-1` @ 0c36327 (blind, from `Intent` + `Decisions` + `docs/api.md`): 114 cases, 114 unmerged; each unit merges the tests it turns green; assumptions A1–A17 await rulings into `docs/api.md`
 - Deferred queue → `.agent/deferred.md`
 

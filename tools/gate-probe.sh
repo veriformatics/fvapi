@@ -214,6 +214,96 @@ plant_locality() {
 }
 probe inventory-locality plant_locality "claims stay domain-local" inventory_stage
 
+# P4's elaboration-sensitive boundaries; diagnostics must identify the planted check itself.
+plant_inventory_empty() { claims_edit '.claims = []'; }
+probe inventory-empty plant_inventory_empty "inventory is empty" inventory_stage
+plant_inventory_duplicate() { claims_edit '.claims += [.claims[0]]'; }
+probe inventory-duplicate plant_inventory_duplicate "duplicate or empty id" inventory_stage
+plant_inventory_alias() {
+    printf '\nnamespace FvapiSelf.Policy\nabbrev PropAlias := Prop\ndef Aliased : PropAlias := True\nend FvapiSelf.Policy\n' >>FvapiSelf/Policy.lean
+}
+probe inventory-aliased-prop plant_inventory_alias "FvapiSelf.Policy.Aliased is a closed claim with 0" inventory_stage
+plant_inventory_open() {
+    printf '\nnamespace FvapiSelf.Policy\ndef OpenClaim (n : Nat) : Prop := n = n\nend FvapiSelf.Policy\n' >>FvapiSelf/Policy.lean
+}
+probe inventory-closed plant_inventory_open "claim is not closed" inventory_stage
+plant_inventory_universe() {
+    printf '\nnamespace FvapiSelf.Policy\nuniverse u\ndef UniverseClaim : Prop := ∀ (α : Type u) (x : α), x = x\nend FvapiSelf.Policy\n' >>FvapiSelf/Policy.lean
+}
+probe inventory-universe plant_inventory_universe "claim is not universe-free" inventory_stage
+plant_inventory_subject() { claims_edit '.claims[0].audit_subjects = ["Fvapi.Missing"]'; }
+probe inventory-subject plant_inventory_subject "audit subject Fvapi.Missing is not a production module" inventory_stage
+plant_inventory_kind() { claims_edit '.claims[0].proof = "Fvapi.Verify.verdict"'; }
+probe inventory-theorem plant_inventory_kind "proof Fvapi.Verify.verdict is not a theorem" inventory_stage
+plant_inventory_aggregate() { sed -i '/^import FvapiProof.Profile$/d' FvapiProofs.lean; }
+probe inventory-aggregate plant_inventory_aggregate "aggregate proof root omits FvapiProof.Profile" inventory_stage
+plant_inventory_production() { sed -i '1i import FvapiSpec.Policy' Fvapi/Cli.lean; }
+probe inventory-production plant_inventory_production "production import closure contains audit module" inventory_stage
+plant_inventory_transitive() {
+    printf 'import FvapiSelf.Policy\n' >FvapiSpec/ProbeBridge.lean
+    printf 'import FvapiSpec.ProbeBridge\nnamespace FvapiSelf.Probe\ndef ProbeClaim : Prop := True\nend FvapiSelf.Probe\n' >FvapiSelf/Probe.lean
+    printf 'import FvapiSelf.Probe\n' >>FvapiProofs.lean
+}
+probe inventory-transitive plant_inventory_transitive "claims stay domain-local" inventory_stage
+plant_inventory_domain() { claims_edit '.claims[0].spec_module = "FvapiSpec.Profile"'; }
+probe inventory-domain plant_inventory_domain "domain module identities disagree" inventory_stage
+plant_inventory_proof_module() { claims_edit '.claims[0].proof_module = "FvapiProof.Profile"'; }
+probe inventory-proof-module plant_inventory_proof_module "proof is not declared in FvapiProof.Profile" inventory_stage
+probe inventory-proof-domain plant_inventory_proof_module "domain module identities disagree" inventory_stage
+plant_inventory_helper() { claims_edit '.claims[0].spec_module = "FvapiSpec.Missing"'; }
+probe inventory-helper plant_inventory_helper "helper spec module FvapiSpec.Missing does not resolve" inventory_stage
+plant_inventory_roots() { claims_edit '.production_roots = []'; }
+probe inventory-roots plant_inventory_roots "production and audit roots must be nonempty" inventory_stage
+plant_inventory_helper_location() {
+    printf '\nnamespace FvapiSelf.Policy\ndef misplacedHelper : Nat := 1\nend FvapiSelf.Policy\n' >>FvapiSelf/Policy.lean
+}
+probe inventory-helper-location plant_inventory_helper_location "helpers belong in FvapiSpec modules" inventory_stage
+plant_inventory_claim_kind() {
+    printf '\nnamespace FvapiSelf.Policy\ntheorem misplacedProof : True := by trivial\nend FvapiSelf.Policy\n' >>FvapiSelf/Policy.lean
+}
+probe inventory-claim-kind plant_inventory_claim_kind "closed-claim modules contain claim definitions alone" inventory_stage
+plant_inventory_matrix_extra() {
+    printf '| Unlisted promise | unlisted-claim | | | | |\n' >>docs/obligations.md
+}
+probe inventory-matrix-extra plant_inventory_matrix_extra "matrix row names no inventoried claim" inventory_stage
+plant_inventory_matrix_header() {
+    claims_edit '.claims[0].id = "Claim id"'
+    # shellcheck disable=SC2016  # literal Markdown cells
+    sed -i 's/`policy-exact`/`accepting-exact`/g' docs/obligations.md
+}
+probe inventory-matrix-header plant_inventory_matrix_header "Claim id: no row in" inventory_stage
+plant_inventory_production_roots() { claims_edit '.production_roots = ["Fvapi"]'; }
+probe inventory-production-roots plant_inventory_production_roots "production_roots must be exactly" inventory_stage
+plant_inventory_audit_roots() { claims_edit '.audit_roots += ["FvapiProof.Policy"]'; }
+probe inventory-audit-roots plant_inventory_audit_roots "audit_roots must be exactly" inventory_stage
+plant_inventory_hidden_domain() {
+    claims_edit '.claims |= map(select(.domain != "Profile"))'
+    sed -i '/^import FvapiProof.Profile$/d' FvapiProofs.lean
+}
+probe inventory-hidden-domain plant_inventory_hidden_domain "aggregate proof root does not reach closed-claim module FvapiSelf.Profile" inventory_stage
+plant_inventory_budget() { claims_edit '.claims[0].reviewed_surface_budget = 0'; }
+probe inventory-budget plant_inventory_budget "reviewed_surface_budget must be a positive integer" inventory_stage
+plant_inventory_budget_type() { claims_edit '.claims[0].reviewed_surface_budget = "40"'; }
+probe inventory-budget-type plant_inventory_budget_type "reviewed_surface_budget:" inventory_stage
+plant_inventory_snapshot() { claims_edit '.claims[0].expected_snapshot = "sha256:" + ("A" * 64)'; }
+probe inventory-snapshot plant_inventory_snapshot "expected_snapshot must be sha256: + 64 lowercase hex" inventory_stage
+plant_inventory_private() {
+    printf '\nnamespace FvapiSelf.Policy\nprivate def Hidden : Prop := True\nend FvapiSelf.Policy\n' >>FvapiSelf/Policy.lean
+}
+probe inventory-private plant_inventory_private "FvapiSelf.Policy.Hidden is a closed claim with 0" inventory_stage
+
+# Lake must trace the file included in the shipped runner, not only its importing Lean source.
+plant_inventory_embed() { printf '\n-- FVAPI_EMBEDDED_PROBE\n' >>tools/lean/Inventory.lean; }
+inventory_embed_stage() {
+    lake build fvapi >/dev/null 2>&1 || return 2
+    if grep -a -q -F FVAPI_EMBEDDED_PROBE .lake/build/bin/fvapi; then
+        printf 'embedded checker source changed binary\n'
+        return 1
+    fi
+    return 0
+}
+probe inventory-embedded-source plant_inventory_embed "embedded checker source changed binary" inventory_embed_stage
+
 # lean-style: a tab in a Lean source.
 plant_tab() { printf '\t-- tab\n' >>Fvapi/Version.lean; }
 probe lean-style plant_tab ": tab" bash tools/lean-style.sh

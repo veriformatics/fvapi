@@ -69,7 +69,12 @@ target libfvapinative pkg : FilePath := do
 
 /-! ## Lean targets -/
 
+/-- `include_str` alone is not a Lake-traced input: replay must embed the current checker. -/
+input_file inventory_source where
+  path := "tools" / "lean" / "Inventory.lean"
+
 lean_lib Fvapi where
+  needs := #[`@/inventory_source]
   moreLinkObjs := #[libfvapinative]
 
 /-- Audit tree (never imported by shipped code): reviewed vocabulary, closed claims, proofs. -/
