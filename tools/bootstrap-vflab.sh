@@ -32,7 +32,7 @@ fi
 sudo systemctl daemon-reload
 sudo systemctl start fvapi_gate.slice
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
-    shellcheck jq rsync curl bubblewrap python3 >/dev/null
+    shellcheck jq rsync curl bubblewrap python3 gcc libc6-dev >/dev/null
 mkdir -p ~/gate/ws
 # Node for dev tooling (Renovate config validator; the console toolchain later): a pinned release
 # >= 7 days old, sha256-verified, at ~/.local/node (tools/vflab-run puts its bin on PATH).

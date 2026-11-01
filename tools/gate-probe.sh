@@ -242,6 +242,17 @@ plant_tool() {
 }
 probe deps plant_tool "planted has no row" bash tools/check-deps.sh
 
+# native: a wrong total length in the SHA-256 core (digest mismatch); one block read past each chunk
+# (only a live AddressSanitizer catches it).
+plant_native_total() {
+    sed -i 's/n % 64, (uint64_t)n, out);/n % 64, (uint64_t)n + 1, out);/' c/fvapi_sha256_core.c
+}
+plant_native_overread() {
+    sed -i 's/update_nblocks((uint32_t)n, /update_nblocks((uint32_t)n + 64, /' c/fvapi_sha256_core.c
+}
+probe native-total plant_native_total "MISMATCH one-shot" bash tests/native/run.sh
+probe native-asan plant_native_overread "AddressSanitizer" bash tests/native/run.sh
+
 # renovate: the vendored-C manager stops matching its lock.
 plant_vendor_manager() { sed -i 's/\\"commit\\":/\\"revision\\":/' renovate.json; }
 probe renovate-vendor plant_vendor_manager "vendor/hacl-star/lock.json: extracted" python3 -I tools/check-renovate.py

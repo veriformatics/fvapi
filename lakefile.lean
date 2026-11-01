@@ -1,5 +1,5 @@
 import Lake
-open Lake DSL
+open Lake DSL System
 
 package fvapi where
   version := v!"0.1.0"
@@ -12,7 +12,65 @@ package fvapi where
   testDriver := "«fvapi-tests»"
   leanOptions := #[⟨`autoImplicit, false⟩, ⟨`relaxedAutoImplicit, false⟩, ⟨`warningAsError, true⟩]
 
-lean_lib Fvapi
+/-! ## Native code: HACL*'s verified SHA-256 + fvapi's shim (`docs/contracts/U3-codecs.md` S2) -/
+
+def haclDist : FilePath := "vendor" / "hacl-star" / "dist"
+
+/-- `-I` roots + the toolchain compiler's own flags: host paths, so weak (a moved checkout must
+not rebuild); their content is traced through `cTrace`. The toolchain's clang ships no libc
+headers (`-nostdinc`) and HACL's headers need some (`string.h`, `endian.h`): the system's glibc
+headers (`libc6-dev`) follow clang's builtin ones. -/
+def cWeakArgs (pkg : Package) : FetchM (Array String) := do
+  let roots := #[haclDist / "gcc-compatible", haclDist / "karamel" / "include",
+    haclDist / "karamel" / "krmllib" / "dist" / "minimal"]
+  return (roots.flatMap fun r => #["-I", (pkg.dir / r).toString]) ++
+    #["-I", (← getLeanIncludeDir).toString] ++ (← getLeanInstall).ccFlags ++
+    #["-isystem", "/usr/include/x86_64-linux-gnu", "-isystem", "/usr/include"]
+
+/-- Lake traces a C source + its flags alone: every header (vendored + fvapi's) and the toolchain
+(compiler + `lean.h`) join the trace, so a changed header or toolchain rebuilds the objects.
+`computeFileHash`, not `fetchFileTrace`: the latter caches `<file>.hash` beside each header,
+littering the byte-checked vendored tree. -/
+def cTrace (pkg : Package) : JobM BuildTrace := do
+  let headers := (← (pkg.dir / haclDist).walkDir) ++ (← (pkg.dir / "c").walkDir)
+  let mut trace ← getLeanTrace
+  for h in headers.qsort (·.toString < ·.toString) do
+    if h.extension == some "h" then
+      trace := trace.mix (.ofHash (← computeFileHash h) h.toString)
+  return trace
+
+input_file hacl_sha2.c where
+  path := haclDist / "gcc-compatible" / "Hacl_Hash_SHA2.c"
+
+input_file fvapi_sha256_core.c where
+  path := "c" / "fvapi_sha256_core.c"
+
+input_file fvapi_sha256.c where
+  path := "c" / "fvapi_sha256.c"
+
+/-- HACL's upstream build flags; the shim adds warnings as errors (HACL's generated C keeps its
+own warning policy). -/
+target hacl_sha2.o pkg : FilePath := do
+  buildO (pkg.buildDir / "c" / "hacl_sha2.o") (← hacl_sha2.c.fetch) (← cWeakArgs pkg)
+    #["-std=gnu11", "-O3", "-fPIC"] (← getLeanCc) (cTrace pkg)
+
+target fvapi_sha256_core.o pkg : FilePath := do
+  buildO (pkg.buildDir / "c" / "fvapi_sha256_core.o") (← fvapi_sha256_core.c.fetch)
+    (← cWeakArgs pkg) #["-std=gnu11", "-O3", "-fPIC", "-Wall", "-Wextra", "-Werror"] (← getLeanCc)
+    (cTrace pkg)
+
+target fvapi_sha256.o pkg : FilePath := do
+  buildO (pkg.buildDir / "c" / "fvapi_sha256.o") (← fvapi_sha256.c.fetch) (← cWeakArgs pkg)
+    #["-std=gnu11", "-O3", "-fPIC", "-Wall", "-Wextra", "-Werror"] (← getLeanCc) (cTrace pkg)
+
+target libfvapinative pkg : FilePath := do
+  buildStaticLib (pkg.staticLibDir / nameToStaticLib "fvapinative")
+    #[← hacl_sha2.o.fetch, ← fvapi_sha256_core.o.fetch, ← fvapi_sha256.o.fetch]
+
+/-! ## Lean targets -/
+
+lean_lib Fvapi where
+  moreLinkObjs := #[libfvapinative]
 
 /-- Audit tree (never imported by shipped code): reviewed vocabulary, closed claims, proofs. -/
 lean_lib FvapiProofs where

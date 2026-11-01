@@ -2,6 +2,7 @@ import Fvapi
 
 open Fvapi.Cli
 open Fvapi.Verify
+open Fvapi.Hash
 
 /-- One case: its name, whether it held, and its wall-clock in milliseconds. -/
 structure Outcome where
@@ -51,6 +52,21 @@ def main : IO UInt32 := do
       accepting [.conRon, .leanchecker, .nanoda]
         [⟨.nanoda, .accept⟩, ⟨.leanchecker, .accept⟩, ⟨.conRon, .decline "x"⟩] ==
         [.leanchecker, .nanoda]
+    -- SHA-256 known answers (FIPS 180-2 examples) through HACL* (docs/contracts/U3-codecs.md S3).
+  , check "sha256: FIPS 180-2 'abc', empty, 448-bit message" fun _ =>
+      hex (sha256 "abc".toUTF8) ==
+          "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad" &&
+        hex (sha256 .empty) ==
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" &&
+        hex (sha256 "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq".toUTF8) ==
+          "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1",
+    check "sha256: streaming over uneven chunks = one-shot" fun _ =>
+      let data := ByteArray.mk ((List.range 1000).map (·.toUInt8)).toArray
+      let chunked := (List.range 143).foldl
+        (fun s i => Sha256.update s (data.extract (7 * i) (7 * i + 7))) Sha256.init
+      Sha256.finish chunked == sha256 data &&
+        Sha256.finish (Sha256.update (Sha256.update Sha256.init "ab".toUTF8) "c".toUTF8) ==
+          sha256 "abc".toUTF8
   ].mapM id
   let failed := (results.filter (!·.ok)).length
   match results.foldl (fun acc r => if r.ms ≥ acc.ms then r else acc) ⟨"", true, 0⟩ with
