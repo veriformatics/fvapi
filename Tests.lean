@@ -3,12 +3,19 @@ import Fvapi
 open Fvapi.Cli
 open Fvapi.Verify
 open Fvapi.Hash
+open Fvapi.Json
 
 /-- One case: its name, whether it held, and its wall-clock in milliseconds. -/
 structure Outcome where
   name : String
   ok : Bool
   ms : Nat
+
+/-- The decode error of `t`, `none` on success. -/
+def errorOf (t : String) : Option DecodeError :=
+  match decode t.toUTF8 with
+  | .ok _ => none
+  | .error e => some e
 
 def check (name : String) (ok : Unit → Bool) : IO Outcome := do
   let t0 ← IO.monoMsNow
@@ -67,6 +74,25 @@ def main : IO UInt32 := do
       Sha256.finish chunked == sha256 data &&
         Sha256.finish (Sha256.update (Sha256.update Sha256.init "ab".toUTF8) "c".toUTF8) ==
           sha256 "abc".toUTF8
+    -- JSON profile controls (docs/contracts/U3-codecs.md J3–J4; the blind suite is TestsU3).
+  , check "json: members sorted, canonical text, jq escapes" fun _ =>
+      (match decode "{\"b\":1,\"a\":[true,null,\"\\u007f/\\ud83d\\ude00\"]}".toUTF8 with
+        | .ok v => (print v).data.toList ==
+            "{\"a\":[true,null,\"\\u007f/😀\"],\"b\":1}".toUTF8.data.toList
+        | .error _ => false),
+    check "json: precedence — depth before syntax, syntax before caps + duplicates" fun _ =>
+      let rep (n : Nat) (s : String) := String.join (List.replicate n s)
+      errorOf ("x" ++ rep 33 "[") == some .tooLarge &&
+        errorOf ("\"" ++ rep 33 "[") == some .malformed &&
+        errorOf ("\"" ++ rep 65537 "a" ++ "\"x") == some .malformed &&
+        errorOf ("{\"a\":\"" ++ rep 65537 "a" ++ "\",\"a\":1}") == some .tooLarge &&
+        errorOf "{\"a\":1,\"\\u0061\":2}" == some .duplicateKey,
+    check "json: integers ±(2^53 − 1) only, no -0 / 01 / 1.0 / 1e0" fun _ =>
+      (match decode "-9007199254740991".toUTF8 with
+        | .ok v => v == .int (-9007199254740991)
+        | .error _ => false) &&
+        ["9007199254740992", "-0", "01", "1.0", "1e0", "+1"].all fun t =>
+          errorOf t == some .malformed
   ].mapM id
   let failed := (results.filter (!·.ok)).length
   match results.foldl (fun acc r => if r.ms ≥ acc.ms then r else acc) ⟨"", true, 0⟩ with

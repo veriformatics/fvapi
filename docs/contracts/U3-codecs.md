@@ -2,7 +2,7 @@
 
 Sources: `.agent/spec.md` `Decisions` → `Self-verification`, `Stack`, `Interface`, `Store`; `docs/api.md` (JSON profile, error codes); `docs/contracts/U2-trust.md` P2 (profile id rule, golden fixture); tester-1 assumption A12 (ruled in J7); researcher-14 (`.scratch/u3/researcher-14.md`: HACL* pin + file set, Lake FFI, fsync), researcher-15 (`.scratch/u3/researcher-15.md`: verified JSON designs, standards, jq); consultant-15 (Q1/Q4 accept, Q2/Q3/Q5–Q8 amend; folded below).
 
-Tier: kernel throughout (decoder, printer, accessors, digest binding, fsync error mapping, wire decoding). Delivery: commit A = J + S (consumed by U2's profile reader + replay runner; a checkpoint, not completed U3 or self-verification coverage); commit B = F + W (consumed from U4 on). U3 closes after A + B, credited tests and independent rulings.
+Tier: kernel throughout (decoder, printer, accessors, digest binding, fsync error mapping, wire decoding). Delivery: part A = J + S (consumed by U2's profile reader + replay runner; a checkpoint, not completed U3 or self-verification coverage), landed as A1 = the implementations + controls (J6 + `HexExact` proofs visibly pending) and A2 = those proofs + the blind suite merged; part B = F + W (consumed from U4 on). U3 closes after A + B, credited tests and independent rulings.
 
 ## J JSON profile codec (shipped `Fvapi/Json/*.lean`, Std-only)
 
