@@ -175,6 +175,18 @@ probe imports plant_import "import Lean" bash tools/check-imports.sh
 plant_audit_import() { sed -i '1i import FvapiSpec.Policy' Fvapi/Cli.lean; }
 probe imports-audit-tree plant_audit_import "import FvapiSpec.Policy" bash tools/check-imports.sh
 
+# profile: a tampered kernel hash; a dropped comparator target; a missing kernel; a wrong id.
+profile_stage() { bash tools/check-profile.sh; }
+jq_edit() { jq "$1" verify/profile.json >verify/profile.tmp && mv verify/profile.tmp verify/profile.json; }
+plant_kernel_sha() { jq_edit '.kernels[0].sha256 = ("0" * 64)'; }
+probe profile-kernel plant_kernel_sha "leanchecker: " profile_stage
+plant_target() { jq_edit '.comparator.targets -= ["Nat.add"]'; }
+probe profile-targets plant_target "comparator targets" profile_stage
+plant_runset() { jq_edit 'del(.kernels[3])'; }
+probe profile-runset plant_runset "service run set" profile_stage
+plant_id() { jq_edit '.id = "sha256:" + ("0" * 64)'; }
+probe profile-id plant_id "!= recomputed" profile_stage
+
 # lean-style: a tab in a Lean source.
 plant_tab() { printf '\t-- tab\n' >>Fvapi/Version.lean; }
 probe lean-style plant_tab ": tab" bash tools/lean-style.sh

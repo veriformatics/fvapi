@@ -42,6 +42,7 @@ lean-build  lean
 lean-test   lean
 cli         lean
 probes      lean
+profile     lean
 imports     checks
 spec        checks
 shell       checks
@@ -106,6 +107,9 @@ cli() { bash tests/cli/smoke.sh "$root/.lake/build/bin/fvapi"; }
 
 # Each purpose-built check passes on a clean copy, fails on its planted input, passes restored.
 probes() { bash tools/gate-probe.sh; }
+
+# verify/profile.json names exactly the kernels, exporter, comparator + runtime this host executes.
+profile() { bash tools/check-profile.sh; }
 
 # Shipped modules import Init, Std + Fvapi alone (`Decisions` → `Stack`: a Std-only server binary).
 imports() { bash tools/check-imports.sh; }

@@ -1,0 +1,162 @@
+{
+  "id": "sha256:d6ab2e9f02008507a88babc3705598b897b86fd620ed25b377d4f271ab5964e2",
+  "version": 1,
+  "toolchain": "leanprover/lean4:v4.35.0",
+  "runtime": {
+    "rule": "sha256 of `find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum` in {lean_prefix}",
+    "sha256": "953aa1e72283c07686567bb71eeb3fca202baafe2958a7e57987d3b8c4434c25",
+    "files": 17925
+  },
+  "export_format": "fvapi.export.v1",
+  "exporter": {
+    "executable": "{lean_prefix}/bin/leanexport",
+    "sha256": "f6a6483d518a11b323c28b9bac176d2220df0e9fc3230833815db9586669c074"
+  },
+  "comparator": {
+    "executable": "{lean_prefix}/bin/lake",
+    "sha256": "8ba83c98f76562d03b8dbc33f1057151ba6cbb121679dde76b2260ccc90495e1",
+    "source": "src/lean/lake/Lake/CLI/Check.lean",
+    "source_sha256": "55daf430e5adea38453b21798cbdf4cd099f66ec969494022a566a8ae098c00b",
+    "targets": [
+      "Nat.add",
+      "Nat.sub",
+      "Nat.mul",
+      "Nat.pow",
+      "Nat.gcd",
+      "Nat.div",
+      "Nat.mod",
+      "Nat.beq",
+      "Nat.ble",
+      "Nat.land",
+      "Nat.lor",
+      "Nat.xor",
+      "Nat.shiftLeft",
+      "Nat.shiftRight",
+      "String.ofList",
+      "Char.ofNat",
+      "List",
+      "eagerReduce",
+      "Nat",
+      "String",
+      "String.mk",
+      "Char",
+      "optParam",
+      "autoParam",
+      "semiOutParam",
+      "outParam",
+      "Quot",
+      "Quot.mk",
+      "Quot.lift",
+      "Quot.ind"
+    ]
+  },
+  "kernels": [
+    {
+      "name": "leanchecker",
+      "executable": "{lean_prefix}/bin/leanchecker",
+      "sha256": "12c38901cdbfab178f1bf6145dd30012e9a3b2c11ca695292a5884fa3cbaddb6",
+      "args": [
+        "--silent",
+        "--from-export",
+        "{export}"
+      ],
+      "timeout_ms": 120000,
+      "status_map": {
+        "0": "accept",
+        "1": "reject"
+      }
+    },
+    {
+      "name": "leanchecker-paranoid",
+      "executable": "{lean_prefix}/bin/leanchecker-paranoid",
+      "sha256": "ca74d1e9a856149ed05acb600d8931a574dd9f465745beeaf93e3de7b7cbe274",
+      "args": [
+        "--silent",
+        "--from-export",
+        "{export}"
+      ],
+      "timeout_ms": 120000,
+      "status_map": {
+        "0": "accept",
+        "1": "reject"
+      }
+    },
+    {
+      "name": "lean4lean",
+      "executable": "{lean_prefix}/bin/lean4lean",
+      "sha256": "baaec030a70c78562ced2c75866ab0d2410e81ce680b835179ed16570ad5ef97",
+      "args": [
+        "--import",
+        "{export}"
+      ],
+      "timeout_ms": 120000,
+      "status_map": {
+        "0": "accept",
+        "1": "reject"
+      },
+      "decline_pattern": "unknown constant '?([A-Za-z0-9_.']+)",
+      "crash_pattern": "deep recursion detected"
+    },
+    {
+      "name": "nanoda",
+      "executable": "{lean_prefix}/bin/nanoda_bin",
+      "sha256": "cbf13950fc4a48f635a0beceeb5ed32dd82568b870cfd081b6391c1f2cf02ba5",
+      "args": [
+        "{config}"
+      ],
+      "timeout_ms": 120000,
+      "status_map": {
+        "0": "accept",
+        "1": "reject"
+      },
+      "config_template": {
+        "use_stdin": false,
+        "export_file_path": "{export}",
+        "permitted_axioms": "{axioms}",
+        "unpermitted_axiom_hard_error": true,
+        "num_threads": 4,
+        "nat_extension": true,
+        "string_extension": true
+      }
+    },
+    {
+      "name": "con-leche",
+      "executable": "{lean_prefix}/bin/con-leche",
+      "sha256": "23a32522ea2c79f4ec8b48916272b37a423bda171e57cd83cfcf142eec50e621",
+      "args": [
+        "{export}"
+      ],
+      "timeout_ms": 120000,
+      "status_map": {
+        "0": "accept",
+        "1": "reject"
+      }
+    },
+    {
+      "name": "con-ron",
+      "executable": "{lean_prefix}/bin/con-ron",
+      "sha256": "60f4ca9fb9436c323789fa49aae33af6dcd1b9b54b43a66b461779ce79fd8eec",
+      "args": [
+        "{export}"
+      ],
+      "timeout_ms": 120000,
+      "status_map": {
+        "0": "accept",
+        "1": "reject"
+      }
+    }
+  ],
+  "canaries": {
+    "source_repo": "https://github.com/veriformatics/fva",
+    "source_commit": "e5de229ded1e512e7da5996a5d4f0cb782b8a9a6",
+    "set_sha256": "73f9e219e0d99fd1c70670e2699d6e21bbfa1686532b3a35db0395e4e518c116",
+    "known_sha256": "207046a3d9473c1dbf554a25e94c77be2b3729a35af674da61dabd65e40a3bdf",
+    "files": {}
+  },
+  "policy_version": 1,
+  "caps": {
+    "export_ms": 900000,
+    "comparator_ms": 900000,
+    "memory_bytes": 8589934592
+  }
+}
