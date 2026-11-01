@@ -45,7 +45,7 @@ A `compiled_evaluation` status always carries the label `compiled evaluation (tr
 
 ## Ranking (several matches)
 
-Candidates = entries whose proven targets satisfy every supplied key. Order: coverage first (A before B when A's proven-target set strictly contains B's), then newest revision, then entry id. The first candidate is the answer; the rest are `other_matches`.
+Candidates = entries whose proven targets satisfy every supplied key. Coverage first, then newest revision, then entry id, as a total order: layer 1 = the candidates no other candidate's proven-target set strictly contains; layer k+1 = the same over the candidates left after layers 1…k; within a layer, newest revision first, then lowest entry id. (A pairwise comparator would cycle: A={x,y} beats B={x} by coverage, B beats C={z} and C beats A by recency.) The first candidate is the answer; the rest, in this order, are `other_matches`. Consequence: A ⊋ B ⇒ A precedes B.
 
 ## CLI (`fvapi`)
 
