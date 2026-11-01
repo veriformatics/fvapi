@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "id": "sha256:649c990f7e4e9dd136f9f207878ecd81b19167654e0982303c6fbf986aabcd17",
+  "toolchain": "leanprover/lean4:v4.35.0",
+  "runtime": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "export_format": "fvapi.export.v1",
+  "exporter": {"executable": "/fixture/leanexport", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"},
+  "comparator": {
+    "executable": "/fixture/lake",
+    "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "source": "Lake/CLI/Check.lean",
+    "source_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+    "targets": ["Quot.sound", "propext", "Classical.choice"]
+  },
+  "kernels": [
+    {"name": "leanchecker", "executable": "/fixture/default", "sha256": "5555555555555555555555555555555555555555555555555555555555555555", "args": ["--strict", "λ"], "timeout_ms": 19, "status_map": {"0": "accept", "3": "reject", "4": "decline"}, "decline_pattern": "^UNSUPPORTED:(.*)$"},
+    {"name": "nanoda", "executable": "/fixture/independent", "sha256": "6666666666666666666666666666666666666666666666666666666666666666", "args": [], "timeout_ms": 23, "status_map": {"0": "accept"}}
+  ],
+  "canaries": {"source_repo": "https://example.invalid/corpus", "source_commit": "synthetic", "set_sha256": "7777777777777777777777777777777777777777777777777777777777777777", "known_sha256": "8888888888888888888888888888888888888888888888888888888888888888", "files": {}},
+  "policy_version": 1,
+  "caps": {"export_ms": 31, "comparator_ms": 37, "memory_bytes": 1048576}
+}
