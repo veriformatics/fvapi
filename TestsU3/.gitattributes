@@ -1,0 +1,2 @@
+nist/*.rsp -text -diff
+nist/*.txt -text -diff

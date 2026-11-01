@@ -45,6 +45,7 @@ probes      lean
 profile     lean
 inventory   lean
 blackbox    lean
+tests-u3    lean
 imports     checks
 spec        checks
 shell       checks
@@ -102,7 +103,10 @@ lean_style() { bash tools/lean-style.sh; }
 
 # Every target; `warningAsError` turns lints into failures, `autoImplicit` off rejects implicit
 # variables (probes plant both).
-lean_build() { lake build Fvapi FvapiProofs TestsU2 fvapi «fvapi-tests» «fvapi-tests-u2»; }
+lean_build() {
+    lake build Fvapi FvapiProofs TestsU2 TestsU3 fvapi «fvapi-tests» «fvapi-tests-u2» \
+        «fvapi-tests-u3» «fvapi-tests-u3-oracle»
+}
 
 # The driver's cases, then the blind U2 policy suite (exhaustive differential vs its oracle).
 lean_test() {
@@ -133,6 +137,9 @@ inventory() {
 # tester-2's blind U2 black-box suite against the built CLI: the profile group (152 cases); the
 # replay + inventory groups join once `fvapi dev replay` exists.
 blackbox() { bash TestsU2/run-blackbox.sh profile; }
+
+# tester-3's blind U3 suite (codec + SHA-256 vs its independent oracle, NIST vectors, resources).
+tests_u3() { bash TestsU3/run.sh all; }
 
 # Shipped modules import Init, Std + Fvapi alone (`Decisions` → `Stack`: a Std-only server binary).
 imports() { bash tools/check-imports.sh; }
