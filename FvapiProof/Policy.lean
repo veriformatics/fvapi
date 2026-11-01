@@ -32,6 +32,6 @@ theorem policy_exact : FvapiSelf.Policy.PolicyExact := by
 
 theorem accepting_exact : FvapiSelf.Policy.AcceptingExact := by
   intro order rs k
-  simp [accepting, List.mem_filter, List.any_eq_true, accepted_iff]
+  simp [accepting, List.mem_filter, List.mem_eraseDups, List.any_eq_true, accepted_iff]
 
 end FvapiProof.Policy
