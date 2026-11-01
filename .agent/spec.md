@@ -65,7 +65,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [ ] U18 Privacy design: `docs/privacy.md`
 - [ ] U19 Docs + retirement: README, SECURITY.md, `docs/api.md` final; prototype tag + `git rm` + live prototype service removed
 - [ ] U20 Close: review ledger adjudicated, spec current, `Phase: MAINTAIN — whole product`
-- [ ] U2 blind suite `TestsU2/` (from the frozen U2 contract): P1 policy suites run in `lean-test`; all 196 black-box cases (profile 152, replay 25, inventory 19) green in stage `blackbox`
+- [x] 1a4a43f U2 blind suite `TestsU2/` (from the frozen U2 contract): P1 policy suites run in `lean-test`; all 196 black-box cases (profile 152, replay 25, inventory 19) green in stage `blackbox`
 - [ ] Acceptance suite `wt/tester-1` @ 0c36327 (blind, from `Intent` + `Decisions` + `docs/api.md`): 114 cases, 114 unmerged; each unit merges the tests it turns green; assumptions A1–A17 await rulings into `docs/api.md`
 - Deferred queue → `.agent/deferred.md`
 
