@@ -97,7 +97,7 @@ lean_style() { bash tools/lean-style.sh; }
 
 # Every target; `warningAsError` turns lints into failures, `autoImplicit` off rejects implicit
 # variables (probes plant both).
-lean_build() { lake build Fvapi fvapi «fvapi-tests»; }
+lean_build() { lake build Fvapi FvapiProofs fvapi «fvapi-tests»; }
 
 lean_test() { lake test; }
 
