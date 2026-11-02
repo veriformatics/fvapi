@@ -1,4 +1,4 @@
-# U4 Store — contract v3 (agent-read; MAIN rulings applied; U4A tables pending)
+# U4 Store — contract v3 (agent-read; MAIN rulings applied; U4A tables frozen: `docs/contracts/U4-tables.md`)
 
 Sources: `.agent/spec.md` `Decisions` → `Store`, `Rows`, `Request data`, `Operations`, `Backup`, `Library work`, `Self-verification`, `Stack`, `Interface`, `Sessions + placement`, `Delivery order`; `docs/api.md`; `docs/contracts/U3-codecs.md` F + W; `docs/contracts/U2-trust.md` P2–P7; `.scratch/u4/researcher-{16,17}.md`; consultant-21…25. Ruling ledger + positions = `.scratch/u4/consultant-26.md`.
 
