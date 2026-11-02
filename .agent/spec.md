@@ -66,7 +66,7 @@ fvapi runs on `vflab`, a machine dedicated to it. vflab does the actual work, st
 - [ ] U19 Docs + retirement: README, SECURITY.md, `docs/api.md` final; prototype tag + `git rm` + live prototype service removed
 - [ ] U20 Close: review ledger adjudicated, spec current, `Phase: MAINTAIN — whole product`
 - [x] 1a4a43f U2 blind suite `TestsU2/` (from the frozen U2 contract): P1 policy suites run in `lean-test`; all 196 black-box cases (profile 152, replay 25, inventory 19) green in stage `blackbox`
-- [ ] Python gate stage: the gate runs Python (tools/*.py, TestsU2/*.py, tests/**) with no linter or type checker → `ruff` + a type checker (pyright or mypy) as a `checks` stage with probes (Pyright already flags tools/audit-supervisor-probe.py: optional ModuleSpec unguarded)
+- [x] 1173e84 Python gate stage: ruff 0.17.3 + pyrefly 1.4.0 (preset default), stage `python` + 6 probes, 0 findings (CI run 41410759341 green)
 - [ ] Acceptance suite `wt/tester-1` @ 0c36327 (blind, from `Intent` + `Decisions` + `docs/api.md`): 114 cases, 114 unmerged; each unit merges the tests it turns green; assumptions A1–A17 await rulings into `docs/api.md`
 - Deferred queue → `.agent/deferred.md`
 
