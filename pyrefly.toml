@@ -1,0 +1,6 @@
+preset = "default"
+untyped-def-behavior = "check-and-infer-return-type"
+python-version = "3.12"
+search-path = ["TestsU3B"]
+project-includes = ["tools/*.py", "TestsU2/*.py", "TestsU3/*.py", "TestsU3B/*.py", "tests/**/*.py"]
+project-excludes = ["prototype/**"]

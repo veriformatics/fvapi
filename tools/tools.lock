@@ -4,4 +4,6 @@
 actionlint 1.7.12 linux-x86_64 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8 https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
 betterleaks 1.9.0 linux-x86_64 f8b185a39ffcece2a1ca82bf3a4e7435cd81963ffd16b7a9128daf75f35f6de7 https://github.com/betterleaks/betterleaks/releases/download/v1.9.0/betterleaks_1.9.0_linux_x64.tar.gz
 elan-init 4.2.4 linux-x86_64 42b94d4244e8353142c456ec0e4ca6528fd898a6c604d4059f494e706e431f63 https://github.com/leanprover/elan/releases/download/v4.2.4/elan-x86_64-unknown-linux-gnu.tar.gz
+pyrefly 1.4.0 linux-x86_64 a615290c7f2dbcf38a103fe8c0c617b3d9d8a756a1665eddd9c49782275b002e https://github.com/meta/pyrefly/releases/download/1.4.0/pyrefly-linux-x86_64-musl.tar.gz
+ruff 0.17.3 linux-x86_64 85e76bbb60e708a22624b31efb227e8bdaa6978177b93c146d352de4caf37ba1 https://github.com/astral-sh/ruff/releases/download/0.17.3/ruff-x86_64-unknown-linux-musl.tar.gz
 zizmor 1.31.1 linux-x86_64 d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99 https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz

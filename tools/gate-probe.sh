@@ -171,6 +171,27 @@ cached_tool() {
 }
 probe tool-identity plant_marker "corrupt cached binary replaced" cached_tool
 
+# python: both pinned scanners fire inside unannotated helpers; a missing config stays red.
+python_stage() { bash -c 'source tools/gate.sh; python'; }
+plant_python_lint() {
+    printf 'def lint_probe():\n    return ruff_probe_missing_name\n' >tools/python-probe.py
+}
+plant_python_type() {
+    printf 'import importlib.util\ndef type_probe():\n    spec = importlib.util.spec_from_file_location("probe", "probe.py")\n    return spec.loader\n' >tools/python-probe.py
+}
+plant_python_warning() {
+    printf 'def warning_probe():\n    try:\n        int("invalid")\n    except (ValueError, UnicodeError):\n        pass\n' >tools/python-probe.py
+}
+plant_python_config() { plant_python_type; rm pyrefly.toml; }
+plant_python_ruff_missing() { sed -i '/^ruff /d' tools/tools.lock; }
+plant_python_pyrefly_missing() { sed -i '/^pyrefly /d' tools/tools.lock; }
+probe python-ruff plant_python_lint "F821" python_stage
+probe python-pyrefly plant_python_type "[missing-attribute]" python_stage
+probe python-warning plant_python_warning "[unreachable-except-clause]" python_stage
+probe python-config plant_python_config "pyrefly.toml" python_stage
+probe python-ruff-missing plant_python_ruff_missing "no pinned tool matches linux-x86_64 ruff" python_stage
+probe python-pyrefly-missing plant_python_pyrefly_missing "no pinned tool matches linux-x86_64 pyrefly" python_stage
+
 # wire: the raw check cap is enforced by the shipped decision function, not a fixture.
 plant_wire_cap() { sed -i 's/body.size ≤ 65536/body.size ≤ 65537/' Fvapi/Wire/Decide.lean; }
 wire_stage() {

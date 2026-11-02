@@ -1,0 +1,7 @@
+target-version = "py312"
+include = ["tools/*.py", "TestsU2/*.py", "TestsU3/*.py", "TestsU3B/*.py", "tests/**/*.py"]
+extend-exclude = ["prototype"]
+
+[lint]
+# Correctness rules; compact statements + layout follow the surrounding agent-read code.
+select = ["E4", "E9", "E711", "E712", "E713", "E714", "E721", "E722", "F", "B"]

@@ -6,6 +6,7 @@ import reprlib
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any, Literal, overload
 
 BINARY = Path(sys.argv[1] if len(sys.argv) > 1 else ".lake/build/bin/fvapi").resolve()
 COUNT = 0
@@ -16,7 +17,15 @@ def compact(value):
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
 
 
-def invoke(arguments, body=b"", rc=0):
+@overload
+def invoke(arguments: list[str], body: bytes = b"", rc: Literal[0] = 0) -> dict[str, Any]: ...
+
+
+@overload
+def invoke(arguments: list[str], body: bytes = b"", rc: int = 0) -> dict[str, Any] | None: ...
+
+
+def invoke(arguments: list[str], body: bytes = b"", rc: int = 0) -> dict[str, Any] | None:
     proc = subprocess.run([str(BINARY), "dev", "wire", *arguments], input=body, capture_output=True)
     if proc.returncode != rc:
         raise AssertionError(f"{arguments}: rc {proc.returncode} != {rc}: {proc.stderr!r}")

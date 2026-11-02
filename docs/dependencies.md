@@ -7,6 +7,8 @@
 | `actionlint` | `tools/tools.lock` | as `elan-init` | sha256 pin; it is itself the workflow linter |
 | `betterleaks` | `tools/tools.lock` | as `elan-init` | sha256 pin; it is itself the secret scanner |
 | `zizmor` | `tools/tools.lock` | as `elan-init` | sha256 pin; it is itself the workflow security auditor |
+| `ruff` | `tools/tools.lock` (0.17.3, static-musl archive + sha256) | as `elan-init`; re-pin preserves the musl asset scheme | sha256 pin; Python correctness lint in stage `python` + planted F821 probe |
+| `pyrefly` | `tools/tools.lock` (1.4.0, static-musl archive + sha256) | as `elan-init`; re-pin preserves the musl asset scheme | sha256 pin; type checking with explicit `pyrefly.toml` default preset, unannotated bodies + Optional-loader/config probes |
 | `actions/checkout` | `.github/workflows/*.yml` (commit digest) | Renovate github-actions manager (`helpers:pinGitHubActionDigests`) | zizmor + actionlint; CodeQL `actions` |
 | `actions/cache` | `.github/workflows/gate.yml` (commit digest) | as `actions/checkout` | zizmor + actionlint; restored capsule bytes revalidated before use |
 | `veriformatics/fva` (fva + fvamut capsule, Apache-2.0) | `verify/capsule.lock` (public commit, source tree, toolchain/runtime, dependency manifest, canary set + known acceptances) | Renovate custom manager → `tools/pin-capsule.sh COMMIT`; no-argument relock must be byte-identical; profile compatibility + audit probes decide the bump | `tools/build-capsule.sh` (fresh clean detached build, source/dependency identities, binary hashes on every hit); self-audit + canaries; no Lean source vulnerability extractor exists |

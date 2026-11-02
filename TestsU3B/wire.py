@@ -21,6 +21,9 @@ import oracle as O
 from support import exact, parse_output
 
 
+type JsonValue = None | bool | int | str | list[JsonValue] | dict[str, JsonValue]
+
+
 @dataclass
 class Case:
     id: str
@@ -240,7 +243,7 @@ def mixed(out: Cases):
     for early in range(1, 5):
         for late in range(early + 1, 6):
             query = ""
-            body = {"statement_digest": "new:" + O.HASH}
+            body: dict[str, Any] = {"statement_digest": "new:" + O.HASH}
             if 4 in (early, late):
                 body["spec_id"] = None
             if 3 in (early, late):
@@ -314,7 +317,7 @@ def body_modes(out: Cases):
 
 def null_depth(out: Cases):
     for depth in (0, 1, 30, 31, 32, 33):
-        output = None
+        output: JsonValue = None
         for _ in range(depth):
             output = [output]
         value = response_value("check")
@@ -327,6 +330,7 @@ def null_depth(out: Cases):
     for route, r in O.ROUTES.items():
         if r.body:
             base = valid_body(route)
+            assert isinstance(base, dict)
             for key in O.fields(r.body):
                 v = copy.deepcopy(base)
                 v[key] = None
@@ -360,7 +364,7 @@ def pairings(out: Cases):
     all_codes = sorted({code for codes in O.COMMON_ERRORS.values() for code in codes}
                        | {code for r in O.ROUTES.values() for codes in r.errors.values() for code in codes})
     statuses = (200, 202, 400, 401, 404, 409, 413, 422, 500, 503)
-    for route, r in O.ROUTES.items():
+    for route in O.ROUTES:
         for status in statuses:
             # Every route/status/code combination: invalid pairings fail even if body has all extra fields.
             for code in all_codes:
@@ -401,15 +405,16 @@ def refinements(out: Cases):
         value["verification"]["label"] = "wrong label"
         out.add("T12", f"verification-{name}-wrong-label", "response", "check", value=value)
     for count, size, cursor in ((0, 0, False), (0, 1, False), (2, 1, True), (2, 1, False), (1, 1, True), (1, 0, True)):
-        value = {"count": count, "items": [O.sample(O.ENTRY_REF)] * size}
+        value: dict[str, Any] = {"count": count, "items": [O.sample(O.ENTRY_REF)] * size}
         if cursor:
             value["next_cursor"] = "cursor"
         out.add("T12", f"matches-{count}-{size}-{cursor}", "response", "matches", value=value)
     for continuation in (False, True):
         value = response_value("lookup")
-        value["other_matches"] = {"count": 2, "items": [O.sample(O.ENTRY_REF)]}
+        other_matches: dict[str, Any] = {"count": 2, "items": [O.sample(O.ENTRY_REF)]}
         if continuation:
-            value["other_matches"]["next_cursor"] = "cursor"
+            other_matches["next_cursor"] = "cursor"
+        value["other_matches"] = other_matches
         out.add("T12", f"lookup-first-page-continuation-{continuation}", "response", "lookup", value=value)
     for key, branch in O.KEY_MATCH.branches.items():
         match = O.sample(branch, True)
@@ -460,7 +465,7 @@ def ruled_refinements(out: Cases):
     for name, seqs, last_seq in (("out-of-order", (2, 1), 1), ("repeated", (1, 1), 1),
                                  ("last-mismatch", (1, 2), 1)):
         rows = [O.sample(O.ROW) for _ in seqs]
-        for row, seq in zip(rows, seqs):
+        for row, seq in zip(rows, seqs, strict=True):
             row["seq"] = seq
         out.add("T12", f"changes-seq-{name}", "response", "changes",
                 value={"rows": rows, "last_seq": last_seq, "more": False})
@@ -620,7 +625,7 @@ def invoke(argv, body):
         return 3, None, p.stderr.decode(errors="replace")[:200], p.returncode
     try:
         value = parse_output(p.stdout)
-    except (ValueError, UnicodeError, RecursionError):
+    except (ValueError, RecursionError):
         value = None
     diagnostic = p.stderr.decode(errors="replace")[:200]
     if value is None and p.stdout:

@@ -122,7 +122,7 @@ def outcome(raw):
         texts = list(strings(value))
         for text in texts:
             text.encode('utf-8', 'strict')
-    except (ValueError, UnicodeError, RecursionError):
+    except (ValueError, RecursionError):
         return 'malformed', b''
     if any(len(text.encode('utf-8')) > 65536 for text in texts):
         return 'tooLarge', b''
@@ -284,7 +284,7 @@ def crosscheck_jq(rows):
     printed.pop()
     if len(printed) != len(accepted):
         raise AssertionError(('jq output count', len(printed), len(accepted)))
-    for row, output in zip(accepted, printed):
+    for row, output in zip(accepted, printed, strict=True):
         if output != row[4]:
             raise AssertionError(('jq canonical', row[1], output[:100], row[4][:100]))
     version = subprocess.check_output(['jq', '--version']).decode().strip()
@@ -315,7 +315,10 @@ def nist_rows(base):
                 raise AssertionError((name, i, 'hashlib positive control'))
             rows.append((f'{name}-{i:03}', raw.hex(), digest))
     text = (base / 'SHA256Monte.rsp').read_text()
-    seed = re.search(r'Seed = ([0-9a-f]+)', text)[1]
+    seed_match = re.search(r'Seed = ([0-9a-f]+)', text)
+    if seed_match is None:
+        raise AssertionError('Monte Carlo seed missing')
+    seed = seed_match[1]
     monte = re.findall(r'COUNT = (\d+)\s+MD = ([0-9a-f]+)', text)
     if [int(i) for i, _ in monte] != list(range(100)):
         raise AssertionError('Monte Carlo count')
