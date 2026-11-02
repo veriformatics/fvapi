@@ -1,4 +1,6 @@
 import Fvapi.Verify.Replay
+import Fvapi.Sys.Fsync.Dev
+import Fvapi.Wire.Dev
 
 /-! Developer commands (`fvapi dev …`): fvapi's own verification tooling, outside the public
 CLI surface of `docs/api.md`. Exit codes: 0 valid / pass, 1 invalid / fail, 2 usage. -/
@@ -65,6 +67,8 @@ def replayFlags (args : List String) : Option Replay.Options := do
 
 /-- Flags in any order; an unrecognized or incomplete invocation exits 2. -/
 def run : List String → IO UInt32
+  | "fsync" :: "run" :: rest => Fvapi.Sys.Fsync.Dev.run rest
+  | "wire" :: rest => Fvapi.Wire.Dev.run rest
   | "replay" :: rest => do
     match replayFlags rest with
     | none => IO.eprint usage; return 2

@@ -1,0 +1,1 @@
+wire-oracle: 9 priority/scalar controls + 3 jq crosschecks + 15 regression controls; 5306 cases generated

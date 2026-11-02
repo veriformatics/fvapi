@@ -171,6 +171,14 @@ cached_tool() {
 }
 probe tool-identity plant_marker "corrupt cached binary replaced" cached_tool
 
+# wire: the raw check cap is enforced by the shipped decision function, not a fixture.
+plant_wire_cap() { sed -i 's/body.size ≤ 65536/body.size ≤ 65537/' Fvapi/Wire/Decide.lean; }
+wire_stage() {
+    lake build fvapi >/dev/null 2>&1 || return 1
+    bash -c 'source tools/gate.sh; wire'
+}
+probe wire-body-cap plant_wire_cap "wire: check_over_cap" wire_stage
+
 # imports: a shipped module importing `Lean`.
 plant_import() { sed -i '1i import Lean' Fvapi/Cli.lean; }
 probe imports plant_import "import Lean" bash tools/check-imports.sh
@@ -354,6 +362,17 @@ plant_native_overread() {
 }
 probe native-total plant_native_total "MISMATCH one-shot" bash tests/native/run.sh
 probe native-asan plant_native_overread "AddressSanitizer" bash tests/native/run.sh
+
+# fsync: the real external object's finalizer must preserve a reused descriptor; ASan stays live.
+plant_fsync_lifecycle() {
+    sed -i 's/writer->closed = true;/writer->closed = false;/' c/fvapi_fsync.c
+}
+plant_fsync_asan() {
+    sed -i '/free(writer->path);/i\    writer->path[strlen(writer->path) + 1] = 0;' c/fvapi_fsync.c
+}
+probe fsync-lifecycle plant_fsync_lifecycle "explicit close did not persist closed flag" \
+    bash tests/fsync/native.sh
+probe fsync-asan plant_fsync_asan "AddressSanitizer" bash tests/fsync/native.sh
 
 # renovate: the vendored-C manager stops matching its lock.
 plant_vendor_manager() { sed -i 's/\\"commit\\":/\\"revision\\":/' renovate.json; }

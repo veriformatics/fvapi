@@ -63,9 +63,17 @@ target fvapi_sha256.o pkg : FilePath := do
   buildO (pkg.buildDir / "c" / "fvapi_sha256.o") (← fvapi_sha256.c.fetch) (← cWeakArgs pkg)
     #["-std=gnu11", "-O3", "-fPIC", "-Wall", "-Wextra", "-Werror"] (← getLeanCc) (cTrace pkg)
 
+input_file fvapi_fsync.c where
+  path := "c" / "fvapi_fsync.c"
+
+target fvapi_fsync.o pkg : FilePath := do
+  buildO (pkg.buildDir / "c" / "fvapi_fsync.o") (← fvapi_fsync.c.fetch) (← cWeakArgs pkg)
+    #["-std=gnu11", "-O3", "-fPIC", "-Wall", "-Wextra", "-Werror"] (← getLeanCc) (cTrace pkg)
+
 target libfvapinative pkg : FilePath := do
   buildStaticLib (pkg.staticLibDir / nameToStaticLib "fvapinative")
-    #[← hacl_sha2.o.fetch, ← fvapi_sha256_core.o.fetch, ← fvapi_sha256.o.fetch]
+    #[← hacl_sha2.o.fetch, ← fvapi_sha256_core.o.fetch, ← fvapi_sha256.o.fetch,
+      ← fvapi_fsync.o.fetch]
 
 /-! ## Lean targets -/
 
@@ -107,3 +115,10 @@ lean_exe «fvapi-tests-u3» where
 /-- The oracle's crosscheck, built without the implementation adapter. -/
 lean_exe «fvapi-tests-u3-oracle» where
   root := `TestsU3.OracleMain
+
+/-- Blind U3 part B: `TestsU3B.Api` is the sole public Fsync import. -/
+lean_lib TestsU3B where
+  globs := #[.submodules `TestsU3B]
+
+lean_exe «fvapi-tests-u3b» where
+  root := `TestsU3B.Main

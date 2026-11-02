@@ -1,0 +1,30 @@
+base=8383479
+command=tools/vflab-run bash TestsU3B/run.sh all
+runner_rc=2
+fsync-oracle/interposer: 35 real-libc positive/fault controls + 2 retry controls + 4 race-observer controls
+T1: 29 cases, 29 failed
+T2: 42 cases, 42 failed
+T3: 29 cases, 29 failed
+T4: 51 cases, 51 failed
+T5: 2 cases, 2 failed
+T6: 10 cases, 10 failed
+T7: 4 cases, 4 failed
+T8: 3 cases, 3 failed
+T9: 5 cases, 5 failed
+T10: 6 cases, 6 failed
+fsync: rc=2; wall=1.504s; records=.lake/tests-u3b/fsync.jsonl
+wire-oracle: 9 priority/scalar controls + 3 jq crosschecks; 5301 cases generated
+T11: 87 cases, 87 failed
+T12: 1012 cases, 1012 failed
+T13: 189 cases, 189 failed
+T14: 33 cases, 33 failed
+T15: 45 cases, 45 failed
+T16: 50 cases, 50 failed
+T17: 38 cases, 38 failed
+T18: 293 cases, 293 failed
+T19: 2958 cases, 2958 failed
+T20: 475 cases, 475 failed
+T21: 120 cases, 120 failed
+T22: 1 cases, 1 failed
+wire: 5301 cases; rc=1; wall=21.147s; records=.lake/tests-u3b/wire.jsonl
+u3b: mode=all rc=2 wall=30s

@@ -1,0 +1,15 @@
+✖ [3/8] Running Fvapi.Sys.Fsync
+error: no such file or directory (error code: 2)
+  file: ${WORKTREE}/Fvapi/Sys/Fsync.lean
+✖ [5/8] Running TestsU3B.Api
+error: TestsU3B/Api.lean: bad import 'Fvapi.Sys.Fsync'
+✖ [6/8] Running TestsU3B.Main
+error: TestsU3B/Main.lean: bad import 'TestsU3B.Api'
+✖ [8/8] Running «fvapi-tests-u3b»:exe
+error: bad imports (see the 'TestsU3B.Main' job for details)
+Some required targets logged failures:
+- Fvapi.Sys.Fsync
+- TestsU3B.Api
+- TestsU3B.Main
+- «fvapi-tests-u3b»:exe
+error: build failed

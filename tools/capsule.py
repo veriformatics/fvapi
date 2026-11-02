@@ -238,10 +238,14 @@ def main():
         return
     cache = Path(os.environ.get("FVAPI_CAPSULE_ROOT", str(Path.home() / "gate/capsules")))
     cache.mkdir(parents=True, exist_ok=True)
-    # Acquisition and revalidation share one lock. The caller also holds it while running tools.
+    # Callers hold this lock shared while running capsule tools. Revalidation only reads, so it
+    # shares too (an exclusive revalidation would wait out every running campaign); publishing a
+    # build takes it exclusive and re-checks, since flock's upgrade is not atomic.
     with (cache / ".lock").open("a") as stream:
-        fcntl.flock(stream, fcntl.LOCK_EX)
         dest = args.check.resolve() if args.check else cache.resolve() / key
+        fcntl.flock(stream, fcntl.LOCK_SH)
+        if not (args.check or dest.exists()):
+            fcntl.flock(stream, fcntl.LOCK_EX)
         if args.check or dest.exists():
             verify(dest, lock, profile, identity, key)
             print(f"capsule: revalidated {key}", file=sys.stderr)
