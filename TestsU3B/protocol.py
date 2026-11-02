@@ -19,7 +19,7 @@ def main():
     for invalid in (b'{"x":1,"x":1}', b'1.0', b'NaN', b'"\\ud800"', '{"x":1}'.encode("utf-16")):
         try:
             W.parse_output(invalid)
-        except (ValueError, UnicodeError):
+        except ValueError:
             pass
         else:
             raise AssertionError("driver output accepted outside its contract")

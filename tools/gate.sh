@@ -36,7 +36,7 @@ stage() {
 # name (`-` → `_`). CI runs one job per shard (gate.yml matrix), each on a fresh checkout, so a
 # shard whose stages read the build lists lean-build too; `fanout` holds the matrix = these shards.
 STAGES='
-tools       checks
+tools       checks lean
 lean-style  checks
 lean-build  lean audit
 lean-test   lean
@@ -54,6 +54,7 @@ fsync       lean
 wire        lean
 imports     checks
 spec        checks
+python      checks
 shell       checks
 secrets     checks
 workflows   checks
@@ -67,7 +68,7 @@ meta        checks
 
 # The iteration subset tools/fast-gate.sh runs (build-consuming stages after lean-build).
 # shellcheck disable=SC2034
-FAST_STAGES='lean-style imports spec shell fanout deps vendor native renovate meta lean-build lean-test cli'
+FAST_STAGES='lean-style imports spec python shell fanout deps vendor native renovate meta lean-build lean-test cli'
 
 # Every shard STAGES names, once each, in first-use order.
 shard_names() { awk 'NF { for (i = 2; i <= NF; i++) if (!seen[$i]++) print $i }' <<<"$STAGES"; }
@@ -186,6 +187,17 @@ wire() {
 imports() { bash tools/check-imports.sh; }
 
 spec() { sh .agent/spec-lint .agent/spec.md; }
+
+# Stdlib-only gate helpers + suites; explicit configs prevent Pyrefly's silent basic fallback.
+python() {
+    local rc=0 ruff pyrefly
+    ruff="$(pinned ruff)" || return 1
+    pyrefly="$(pinned pyrefly)" || return 1
+    "$ruff" check --config ruff.toml --output-format concise . || rc=1
+    "$pyrefly" check --config pyrefly.toml --output-format=min-text --min-severity=warn \
+        --threads 1 --skip-interpreter-query || rc=1
+    return $rc
+}
 
 # Every shell script: `*.sh` + each other file whose shebang names sh or bash.
 shell() {

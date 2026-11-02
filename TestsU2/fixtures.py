@@ -7,9 +7,10 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+from typing import Any
 
 KERNELS = ["leanchecker", "leanchecker-paranoid", "lean4lean", "nanoda", "con-leche", "con-ron"]
-CLAIM = {
+CLAIM: dict[str, Any] = {
     "id": "u2.tiny", "domain": "Tiny", "spec_module": "FvapiSpec.Tiny",
     "claim_module": "FvapiSelf.Tiny", "claim": "FvapiSelf.Tiny.Correct",
     "proof": "FvapiProof.Tiny.correct", "proof_module": "FvapiProof.Tiny",

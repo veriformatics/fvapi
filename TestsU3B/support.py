@@ -9,7 +9,7 @@ def exact(left: Any, right: Any) -> bool:
     if type(left) is not type(right):
         return False
     if isinstance(left, list):
-        return len(left) == len(right) and all(exact(a, b) for a, b in zip(left, right))
+        return len(left) == len(right) and all(exact(a, b) for a, b in zip(left, right, strict=True))
     if isinstance(left, dict):
         return left.keys() == right.keys() and all(exact(left[k], right[k]) for k in left)
     return left == right

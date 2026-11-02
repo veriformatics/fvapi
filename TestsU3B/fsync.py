@@ -16,6 +16,7 @@ import sys
 import tempfile
 import time
 from dataclasses import dataclass
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from support import exact, parse_output
@@ -81,7 +82,7 @@ class Reference:
         self.trace.append({"op": op, "owner": owner, "count": count, "ret": result, "errno": number})
         return result, number
 
-    def retry(self, op, owner, count=0):
+    def retry(self, op, owner, count=0) -> tuple[int | None, dict[str, Any] | None]:
         interrupted = 0
         while True:
             result, number = self.call(op, owner, count)
@@ -128,6 +129,7 @@ class Reference:
                     result, error = self.retry("write", owner, amount)
                     if error is not None:
                         break
+                    assert result is not None
                     if result == 0:
                         error = failure("write", "noProgress")
                         break
@@ -165,6 +167,7 @@ class Reference:
 
 def generate():
     out = []
+    ops: list[tuple]
 
     def add(row, name, operations, rules=(), **kwargs):
         out.append(Case(f"{row}-{name}", row, operations, list(rules), **kwargs))
@@ -298,7 +301,7 @@ def compare_trace(expected, actual, operations):
     owners = {}
     modes = iter(int(op[2], 8) if len(op) > 2 else 0o644 for op in operations if op[0] == "create")
     owner_modes = {}
-    for i, (a, e) in enumerate(zip(actual, expected)):
+    for i, (a, e) in enumerate(zip(actual, expected, strict=True)):
         assert a["op"] == e["op"], (i, a, e)
         assert not a["reused"], f"syscall on reused descriptor: {a}"
         assert a["count"] == e["count"], (i, a, e)

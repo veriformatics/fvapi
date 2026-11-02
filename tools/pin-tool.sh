@@ -16,8 +16,17 @@ if [[ -z "$repo" ]]; then
 fi
 release="$(curl -fsSL "https://api.github.com/repos/$repo/releases/tags/v$version" ||
     curl -fsSL "https://api.github.com/repos/$repo/releases/tags/$version")"
-line="$(jq -r --arg n "$name" --arg v "$version" '.assets[]
-    | select(.name | test("linux.*(x86_64|amd64|x64).*tar.gz$"))
+asset=""
+case "$name" in
+    ruff | pyrefly)
+        # These releases offer both GNU + musl assets; retain the pinned static-musl scheme.
+        read -r old_version old_url < <(awk -v n="$name" '$1 == n && $3 == "linux-x86_64" { print $2, $5 }' "$lock")
+        asset="${old_url##*/}"
+        asset="${asset//$old_version/$version}"
+        ;;
+esac
+line="$(jq -r --arg n "$name" --arg v "$version" --arg asset "$asset" '.assets[]
+    | select(if $asset == "" then .name | test("linux.*(x86_64|amd64|x64).*tar.gz$") else .name == $asset end)
     | "\($n) \($v) linux-x86_64 \(.digest | sub("^sha256:"; "")) \(.browser_download_url)"' <<<"$release")"
 if [[ "$(grep -c . <<<"$line")" -ne 1 ]]; then
     printf 'pin-tool: expected one linux-x86_64 tar.gz asset for %s %s, found:\n%s\n' "$name" "$version" "$line" >&2

@@ -3,7 +3,6 @@ import argparse
 from collections import Counter
 import hashlib
 import json
-import os
 from pathlib import Path
 import re
 import subprocess
@@ -68,7 +67,7 @@ def verify(args):
     need(rc != 0 if expected["rc"] == "nonzero" else rc == expected["rc"], f"CLI rc={rc}, expected {expected['rc']}")
     try:
         records = parse_records(stdout)
-    except (ValueError, json.JSONDecodeError) as error:
+    except ValueError as error:
         records = []
         need(False, "stdout is not JSON records: " + str(error))
     trace = trace_records(item["root"])

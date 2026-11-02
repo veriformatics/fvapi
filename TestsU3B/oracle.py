@@ -320,7 +320,7 @@ ROUTES = {
     "changes": Route("none", rec({"since": NAT}, {"limit": LIMIT}), None, 200,
                      rec({"rows": Array(ROW, 0, 1000), "last_seq": NAT, "more": BOOL},
                          refinement=lambda v: (not v["more"] or bool(v["rows"]))
-                         and all(a["seq"] < b["seq"] for a, b in zip(v["rows"], v["rows"][1:]))
+                         and all(a["seq"] < b["seq"] for a, b in zip(v["rows"], v["rows"][1:], strict=False))
                          and (not v["rows"] or v["last_seq"] == v["rows"][-1]["seq"])), {}),
     "row": Route("none", rec(optional={"attempt_cursor": CURSOR, "limit": LIMIT}), None, 200, ROW, {404: ("unknown_row",)}),
     "claim": Route("json", rec(), rec(), 200, ROW, {404: ("unknown_row",), 409: ("bad_transition",)}),
@@ -386,7 +386,8 @@ def unknown_members(schema: Any, value: Any) -> bool:
     if isinstance(schema, Union):
         if not isinstance(value, dict):
             return False
-        branch = schema.branches.get(value.get(schema.tag))
+        tag = value.get(schema.tag)
+        branch = schema.branches.get(tag) if isinstance(tag, str) else None
         return branch is not None and unknown_members(branch, value)
     if isinstance(schema, Record) and isinstance(value, dict):
         declared = fields(schema)
@@ -443,6 +444,7 @@ def parse_query(query: str) -> dict[str, str]:
 
 def request(route: str, query: str, body: bytes) -> dict[str, Any]:
     r = ROUTES[route]
+    value: Any
     try:
         q = parse_query(query)
         if r.mode == "json":
@@ -459,7 +461,7 @@ def request(route: str, query: str, body: bytes) -> dict[str, Any]:
             value = body
         if set(q) - set(fields(r.query)) or r.mode == "json" and unknown_members(r.body, value):
             raise JsonFailure("unknown_key")
-        normalized = {}
+        normalized: dict[str, str | int] = {}
         for key, raw in q.items():
             scalar = fields(r.query)[key]
             if scalar in (NAT, POS, LIMIT):
@@ -473,11 +475,12 @@ def request(route: str, query: str, body: bytes) -> dict[str, Any]:
         if "limit" in fields(r.query) and "limit" not in normalized:
             normalized["limit"] = 100
         if route == "lookup":
+            assert isinstance(value, dict)
             if not value:
                 raise JsonFailure("empty_query")
             if "statement_digest" in value and not value["statement_digest"].startswith("sd1:"):
                 raise JsonFailure("unsupported")
-        result = {"query": normalized}
+        result: dict[str, Any] = {"query": normalized}
         if r.mode == "json":
             result["body"] = project(r.body, value)
         elif r.mode == "bytes":
@@ -494,7 +497,7 @@ def error_schema(route: str, status: int) -> Record | None:
         codes = ()
     if not codes:
         return None
-    required = {"error": enum(*codes), "detail": DETAIL}
+    required: dict[str, Scalar | Array | Record] = {"error": enum(*codes), "detail": DETAIL}
     if route == "lookup" and status == 404:
         required.update(keys=Array(KEY_MATCH, 1, 3), row=ROW_REF)
     if route == "admit" and status == 422:
