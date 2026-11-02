@@ -1,0 +1,18 @@
+command=tools/vflab-run bash TestsU3B/run.sh w
+implementation_base=8383479
+runner_rc=1
+wire-oracle: 9 priority/scalar controls + 3 jq crosschecks + 15 regression controls; 5306 cases generated
+T11: 87 cases, 87 failed
+T12: 1017 cases, 1017 failed
+T13: 189 cases, 189 failed
+T14: 33 cases, 33 failed
+T15: 45 cases, 45 failed
+T16: 50 cases, 50 failed
+T17: 38 cases, 38 failed
+T18: 293 cases, 293 failed
+T19: 2958 cases, 2958 failed
+T20: 475 cases, 475 failed
+T21: 120 cases, 120 failed
+T22: 1 cases, 1 failed
+wire: 5306 cases; rc=1; wall=17.381s; records=.lake/tests-u3b/wire.jsonl
+u3b: mode=w rc=1 wall=23s

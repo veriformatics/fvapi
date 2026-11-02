@@ -49,6 +49,9 @@ self-audit  audit
 audit-probes audit
 blackbox    lean
 tests-u3    lean
+tests-u3b   lean
+fsync       lean
+wire        lean
 imports     checks
 spec        checks
 shell       checks
@@ -107,8 +110,8 @@ lean_style() { bash tools/lean-style.sh; }
 # Every target; `warningAsError` turns lints into failures, `autoImplicit` off rejects implicit
 # variables (probes plant both).
 lean_build() {
-    lake build Fvapi FvapiProofs TestsU2 TestsU3 fvapi «fvapi-tests» «fvapi-tests-u2» \
-        «fvapi-tests-u3» «fvapi-tests-u3-oracle»
+    lake build Fvapi FvapiProofs TestsU2 TestsU3 TestsU3B fvapi «fvapi-tests» «fvapi-tests-u2» \
+        «fvapi-tests-u3» «fvapi-tests-u3-oracle» «fvapi-tests-u3b»
 }
 
 # The driver's cases, then the blind U2 policy suite (exhaustive differential vs its oracle).
@@ -163,6 +166,21 @@ blackbox() {
 
 # tester-3's blind U3 suite (codec + SHA-256 vs its independent oracle, NIST vectors, resources).
 tests_u3() { bash TestsU3/run.sh all; }
+
+# The blind U3 part B suite: fsync through its interposer + Tasks harness, wire through its oracle
+# (the ZFS case is opt-in, outside this portable stage).
+tests_u3b() { bash TestsU3B/run.sh all; }
+
+# Real external-object lifetime + guard under sanitizers, then the package-boundary filesystem IO.
+fsync() { bash tests/fsync/native.sh && bash tests/fsync/driver.sh; }
+
+# The shipped wire decoder + encoders, including the maximal request and exact raw-byte cap.
+wire() {
+    local rc=0
+    lake env lean --run tests/wire/Api.lean || rc=1
+    python3 -I tests/wire/smoke.py || rc=1
+    return $rc
+}
 
 # Shipped modules import Init, Std + Fvapi alone (`Decisions` → `Stack`: a Std-only server binary).
 imports() { bash tools/check-imports.sh; }

@@ -21,7 +21,7 @@
         "Fvapi.Verify.Policy"
       ],
       "reviewed_surface_budget": 20,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Verify.verdict"
       ]
@@ -39,7 +39,7 @@
         "Fvapi.Verify.Policy"
       ],
       "reviewed_surface_budget": 20,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Verify.accepting"
       ]
@@ -57,7 +57,7 @@
         "Fvapi.Verify.Profile"
       ],
       "reviewed_surface_budget": 565,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Verify.runSetOk"
       ]
@@ -76,7 +76,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.decode"
       ]
@@ -95,7 +95,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.decode"
       ]
@@ -113,7 +113,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.decode"
       ]
@@ -132,7 +132,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.print"
       ]
@@ -150,7 +150,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.print"
       ]
@@ -170,7 +170,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.print",
         "Fvapi.Json.decode"
@@ -189,7 +189,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.print"
       ]
@@ -207,7 +207,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.Value.object"
       ]
@@ -225,7 +225,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.Value.get?"
       ]
@@ -243,7 +243,7 @@
         "Fvapi.Json.Value"
       ],
       "reviewed_surface_budget": 253,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Json.Value.asBool?",
         "Fvapi.Json.Value.asInt?",
@@ -265,9 +265,209 @@
         "Fvapi.Hash.Sha256"
       ],
       "reviewed_surface_budget": 11,
-      "expected_snapshot": "sha256:ddde4bef19da1993d5e9908bcf70bb977bcf9af7376d4a0e3068e40778fa9e2e",
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Hash.hex"
+      ]
+    },
+    {
+      "id": "fsync-no-false-success",
+      "domain": "Fsync",
+      "spec_module": "FvapiSpec.Fsync",
+      "claim_module": "FvapiSelf.Fsync",
+      "claim": "FvapiSelf.Fsync.NoFalseSuccess",
+      "proof": "FvapiProof.Fsync.no_false_success",
+      "proof_module": "FvapiProof.Fsync",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Sys.Fsync.Policy",
+        "Fvapi.Sys.Fsync.Types"
+      ],
+      "reviewed_surface_budget": 155,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Sys.Fsync.Writer.create",
+        "Fvapi.Sys.Fsync.Writer.write",
+        "Fvapi.Sys.Fsync.Writer.sync",
+        "Fvapi.Sys.Fsync.Writer.close",
+        "Fvapi.Sys.Fsync.syncDir"
+      ]
+    },
+    {
+      "id": "fsync-close-once",
+      "domain": "Fsync",
+      "spec_module": "FvapiSpec.Fsync",
+      "claim_module": "FvapiSelf.Fsync",
+      "claim": "FvapiSelf.Fsync.CloseOnce",
+      "proof": "FvapiProof.Fsync.close_once",
+      "proof_module": "FvapiProof.Fsync",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Sys.Fsync.Policy",
+        "Fvapi.Sys.Fsync.Types"
+      ],
+      "reviewed_surface_budget": 155,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Sys.Fsync.Writer.close",
+        "Fvapi.Sys.Fsync.syncDir"
+      ]
+    },
+    {
+      "id": "fsync-retry-bounded",
+      "domain": "Fsync",
+      "spec_module": "FvapiSpec.Fsync",
+      "claim_module": "FvapiSelf.Fsync",
+      "claim": "FvapiSelf.Fsync.RetryBounded",
+      "proof": "FvapiProof.Fsync.retry_bounded",
+      "proof_module": "FvapiProof.Fsync",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Sys.Fsync.Policy",
+        "Fvapi.Sys.Fsync.Types"
+      ],
+      "reviewed_surface_budget": 155,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Sys.Fsync.Writer.create",
+        "Fvapi.Sys.Fsync.Writer.write",
+        "Fvapi.Sys.Fsync.Writer.sync",
+        "Fvapi.Sys.Fsync.Writer.close",
+        "Fvapi.Sys.Fsync.syncDir"
+      ]
+    },
+    {
+      "id": "fsync-same-description",
+      "domain": "Fsync",
+      "spec_module": "FvapiSpec.Fsync",
+      "claim_module": "FvapiSelf.Fsync",
+      "claim": "FvapiSelf.Fsync.SameDescription",
+      "proof": "FvapiProof.Fsync.same_description",
+      "proof_module": "FvapiProof.Fsync",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Sys.Fsync.Policy",
+        "Fvapi.Sys.Fsync.Types"
+      ],
+      "reviewed_surface_budget": 155,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Sys.Fsync.Writer.write",
+        "Fvapi.Sys.Fsync.Writer.sync",
+        "Fvapi.Sys.Fsync.Writer.close"
+      ]
+    },
+    {
+      "id": "fsync-error-exact",
+      "domain": "Fsync",
+      "spec_module": "FvapiSpec.Fsync",
+      "claim_module": "FvapiSelf.Fsync",
+      "claim": "FvapiSelf.Fsync.ErrorExact",
+      "proof": "FvapiProof.Fsync.error_exact",
+      "proof_module": "FvapiProof.Fsync",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Sys.Fsync.Policy",
+        "Fvapi.Sys.Fsync.Types"
+      ],
+      "reviewed_surface_budget": 155,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Sys.Fsync.Writer.create",
+        "Fvapi.Sys.Fsync.Writer.write",
+        "Fvapi.Sys.Fsync.Writer.sync",
+        "Fvapi.Sys.Fsync.Writer.close",
+        "Fvapi.Sys.Fsync.syncDir"
+      ]
+    },
+    {
+      "id": "request-exact",
+      "domain": "Wire",
+      "spec_module": "FvapiSpec.Wire",
+      "claim_module": "FvapiSelf.Wire",
+      "claim": "FvapiSelf.Wire.RequestExact",
+      "proof": "FvapiProof.Wire.request_exact",
+      "proof_module": "FvapiProof.Wire.Request",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Wire.Decide"
+      ],
+      "reviewed_surface_budget": 1600,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Wire.decideRequest"
+      ]
+    },
+    {
+      "id": "response-exact",
+      "domain": "Wire",
+      "spec_module": "FvapiSpec.Wire",
+      "claim_module": "FvapiSelf.Wire",
+      "claim": "FvapiSelf.Wire.ResponseExact",
+      "proof": "FvapiProof.Wire.response_exact",
+      "proof_module": "FvapiProof.Wire.Response",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Wire.Decide"
+      ],
+      "reviewed_surface_budget": 1600,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Wire.decideResponse"
+      ]
+    },
+    {
+      "id": "request-encode",
+      "domain": "Wire",
+      "spec_module": "FvapiSpec.Wire",
+      "claim_module": "FvapiSelf.Wire",
+      "claim": "FvapiSelf.Wire.RequestEncode",
+      "proof": "FvapiProof.Wire.request_encode",
+      "proof_module": "FvapiProof.Wire.EncodeRequest",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Wire.Decide"
+      ],
+      "reviewed_surface_budget": 1600,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Wire.encodeRequest"
+      ]
+    },
+    {
+      "id": "response-encode",
+      "domain": "Wire",
+      "spec_module": "FvapiSpec.Wire",
+      "claim_module": "FvapiSelf.Wire",
+      "claim": "FvapiSelf.Wire.ResponseEncode",
+      "proof": "FvapiProof.Wire.response_encode",
+      "proof_module": "FvapiProof.Wire.EncodeResponse",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Wire.Decide"
+      ],
+      "reviewed_surface_budget": 1600,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Wire.encodeResponse"
+      ]
+    },
+    {
+      "id": "status-exact",
+      "domain": "Wire",
+      "spec_module": "FvapiSpec.Wire",
+      "claim_module": "FvapiSelf.Wire",
+      "claim": "FvapiSelf.Wire.StatusExact",
+      "proof": "FvapiProof.Wire.status_exact",
+      "proof_module": "FvapiProof.Wire.Model",
+      "proof_root": "FvapiProofs",
+      "audit_subjects": [
+        "Fvapi.Wire.Tables"
+      ],
+      "reviewed_surface_budget": 1600,
+      "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
+      "shipped_call_paths": [
+        "Fvapi.Wire.renderError"
       ]
     }
   ]
