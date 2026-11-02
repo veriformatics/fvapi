@@ -1,0 +1,109 @@
+# U2 P7b — mutation currency (amends U2 P7)
+
+User ruling: the most correct currency that scales. Problem (P7 as built): fvamut's row digest folds one global manifest (whole `lakefile.lean`, tool versions, runner, every group + test definition) into every row, keys every survivor to all modules + all test inputs, and the `driver` stage (`Tests.lean` imports the umbrella `Fvapi`) puts every production module into most kill witnesses → any lakefile edit, new group/suite or production change re-runs ≈ every row (≈ 20–30 h now, growing per unit). Frozen by user ruling (P7b v5). Basis: research (incremental mutation, regression test selection, Lake 4.35 internals) + three independent reviews (soundness, cost, implementability with a Lake 4.35 projection spike) + one bounded re-review; evidence in the freeze commit body.
+
+Tier: kernel (gate verdict). Claim shape: currency preserves authentic execution evidence for the recorded qualified sandbox profile while its complete keyed inputs are unchanged, given the named trusted mechanisms (S); it asserts no equivalence with arbitrary host executions and never validates a surviving semantic ruling by replay alone. fvamut stays the mutation engine (listing, operators, edit application, classification) at the capsule pin; P7b replaces its CLI's currency, caching and deadlines.
+
+## E Engine seam
+
+- E1 Thin selector `tools/lean/MutRun.lean` (fvapi-owned, run under the capsule's `lake env`) calls the pinned fvamut modules for listing, edit application + diagnostic classification and adds nothing to them. It executes exactly a requested list of (mutant id, cell) pairs; listing runs in bounded batches (native per-file fan-out peaked at 9.5 GB).
+- E2 Each cell = one stage execution for one mutant (or the unmutated baseline) inside its own sandbox (X1) under the stage's fixed effective deadline (caps profile; no probe calibration, no retry unless the caps profile defines one). The selector records each cell immediately: invocation manifest (mutant id, edit list, command, targets, deadline, sandbox profile, key manifest refs), terminal status, witness. fvamut's native table + exec cache are neither read nor written; the gate never calls `fvamut check`.
+- E3 Classification = fvamut's, unchanged: test rc 0 pass | 1 kill | 2 setup (no credit) | 3 crash → `inconclusive`; timeout/resource → `inconclusive`; a build diagnostic inside a theorem/example/#guard → proof kill; inside an ordinary declaration → `unviable` (mutated module) | `downstream-unviable`; from any of `module`, `exes`, `proofs`; unclassified → error, no row. No credit for setup, error or inconclusive.
+
+## X Execution boundary
+
+- X1 Every build and test cell runs in a fresh bubblewrap sandbox launched by the unsandboxed orchestrator (AppArmor's unprivileged-userns restriction, as on vflab, denies nested user namespaces → never sandbox-in-sandbox): `/` = the pinned userspace rootfs (read-only); read-only binds: toolchain prefix, capsule (cells that use it), the declared pinned tool trees the cell executes (never `.tools` wholesale), the cell's declared inputs + built artifacts; a build cell's worker build tree writable; fresh tmpfs `/tmp`, `HOME` + stage scratch; `--unshare-all` (no network); stdin `/dev/null`; only fds 0–2; fixed cwd, umask + process attributes; env = allowlist with fixed values. Every mounted node belongs to a completely keyed immutable tree, a provenance-validated artifact tree, pristine scratch, or an S1 residual.
+- X2 Paths outside the bound set do not exist in a cell ⇒ a cell observes exactly its key's inputs plus the host facts S1 names. A mutant's attempt to reach an unbound path is part of its sandboxed behavior; its outcome stays a function of the key (S5 states the credit consequence).
+- X3 Userspace: a sha256-pinned rootfs tarball (`tools/fetch-tools.sh` + Renovate) with bash, coreutils, util-linux, libc + its headers (the HACL C build reads `/usr/include`); python + jq as pinned trees (inside the rootfs or `.tools`); every executed tool's whole installation tree covered by a pinned identity, revalidated before use; a stable `python3` shim first on `PATH`.
+- X4 Build provenance: each campaign's primary build runs from an empty build directory in a build cell; mutant worker trees copy that build; Lake's UInt64 traces are never a provenance proof.
+
+## K Keys
+
+- K0 Key = sha256 of a canonical manifest (schema version; sorted `<label> <sha256>` lines; full 64-hex). Filesystem entries carry relative name, node kind, permission mode (or a keyed fixed normalization), symlink target, directory membership (empty directories included) and bytes; an absent declared path is an entry. Shared sub-manifests hash once per run. A stale diagnostic names the first changed label when the old manifest is cached, else the row.
+- K1 Mutant identity M(m) = schema version, path, module bytes, complete ordered edit list `[(start, stop, replacement bytes)]`, operator id, listing identity (pinned fvamut source identity).
+- K2 Stage definition S(s) = one file in the declarative registry `verify/mutation/stages/<name>.json`: argv, adapter + its transitive helper bytes, build targets, declared runtime inputs D(s), caps entry, env values, sandbox profile. Core X = selector, sandbox launcher, manifest/key + classification glue, `tools/lean/LakeProjection.lean`, rootfs + engine identities. Adding a domain or stage edits only its own registry file, adapter and targets, never X.
+- K3 Cell key K(m, s) = M(m) + S(s) + B(s) + L(s) + D(s) + E(s) + X:
+  - B(s) = bytes (+ import headers) of the transitive import closure of the cell's build roots, from one batched Lean `parseImports` pass with paths resolved through Lake; an unresolved project import → rc 2.
+  - L(s) = Lake projection (K6).
+  - E(s) = rootfs sha, toolchain runtime manifest sha, capsule key (cells that use it), pinned tool tree identities the cell executes.
+- K4 Test kill witness = (s, rc 1) + K(m, s); current iff s is applicable to m (N3) with its current S(s) and K(m, s) = recorded.
+- K5 Build witness (proof kill | unviable | downstream-unviable | build-cell inconclusive) = (stage class, exact build command + target set, diagnostic module + location + declaration kind) + the complete K3 of that build invocation; current iff the stage still builds that target set for m and the key matches.
+- K5b Baseline rule (every credited witness, K4 + K5): the corresponding unmutated cell under the identical non-M key is current + passing. A failed or missing baseline = setup/incomplete, never mutant evidence; a build failure the unmutated baseline reproduces supplies no outcome or credit.
+- K6 Lake projection (`tools/lean/LakeProjection.lean`, Lake runtime initialized as a startup plugin before imports: plain `lean --run` hits an IR assertion in Lake's loader on 4.35): enforces a restricted configuration profile. Decision rule: (a) command kinds = a positive list (`package`, `require`, `lean_lib`, `lean_exe`, `input_file`, `input_dir`, `target`, `extern_lib`, `def`/`abbrev` helpers, `open`, doc comments, attributes); any other kind (`macro`, `elab`, `syntax`, `initialize`, `run_cmd`, `#eval`, …) → rc 2; (b) on the elaborated values (Lake's built-in notations — arrays, name literals, the `@/target` build-key syntax — are already expanded), collect used constants transitively through global helper definitions; every reachable target-generated constant (e.g. `Auxiliary.config`, directly or through `def flags := Auxiliary.config.moreLeanArgs`) puts that target's declaration into the referencing scope's projection (global when referenced from a global command); (c) projection evaluation performs no IO beyond reading the lakefile + the keyed toolchain; recipe IO (e.g. `cTrace`'s header walk) runs only inside build cells, where the sandbox confines it to keyed inputs. Projection = import header + every global command's bytes (everything except `lean_lib`/`lean_exe` declarations; unknown kinds global) + the bytes of every `input_file`/`input_dir` file + per cell: the declarations of its targets, of the importable owner (`findModule?`) and target owner (`findTargetModule?`) of each B module, and of the targets reached through evaluated `needs`/`extraDepTargets` (PartialBuildKey resolved).
+- K7 Baseline cells: each stage's unmutated cell runs sandboxed and is recorded per non-M key; strace (`--trace`) is a diagnostic for missing declarations, never a gate input.
+
+## G Claim (stage `mutation`, every gate host incl. CI)
+
+- G1 Inventory E(T) = fvamut's default-operator listing of every grouped production file; `mutation-scope` (P7) unchanged.
+- G2 One row per m ∈ E(T), matched by M(m); missing, duplicate or retired rows → fail naming group + count.
+- G3 Every row current: `killed` → a current K4 or K5 kill witness; `unviable` | `downstream-unviable` → a current K5 witness; `survived` | `inconclusive` → every applicable cell current + non-kill, and a current ruling (R).
+- G4 Seeded replay: select min(3, N) distinct stored cell identities (any class, incl. baseline + inconclusive) from their canonical order, N = eligible cell count (N = 0 → empty sample), by a versioned deterministic sampler seeded with the first 8 bytes of sha256(table bytes) read big-endian, its selections fixed by a golden fixture; each re-executes sandboxed and reproduces its status + witness class. Limits: an unchanged table resamples the same cells; G4 audits stored evidence, never establishes currency for unsampled cells.
+- G5 Tracked bytes unchanged; ledger anchor + rulings-file sha verified. Report: counts per outcome, witnesses by class (test | proof), score.
+
+## R Rulings
+
+- R1 Ruling subject Σ(m) = M(m) + the complete build/elaboration input manifest of the mutated module and its imports: source context (opens, instances, notation, macros), effective Lean/build options (L for those modules), tool/plugin identities and external/embedded inputs (`include_str`, `needs` inputs, macro/elaborator reads). Runtime-only test inputs stay out. Every ruling stales on any change to that manifest; R3's packet absorbs it. A validated semantic identity (elaborated-term Merkle digest, sd1's machinery) may replace the closure later (deferred row).
+- R2 Ruling = Σ(m), verdict (`equivalent` | `unspecified` | `resource` for `inconclusive` only), rationale, citations, reviewer id, ledger link. `unspecified` binds its group's authority set from the reviewed manifest `verify/mutation/authority.json` (governing contracts, `docs/api.md`, the `Intent` + `Decisions` sections of `.agent/spec.md`: membership + bytes); `equivalent` is local unless it cites `path#Decl`, bound with that declaration's complete contextual manifest (as R1). Key = all of the above.
+- R3 A stale ruling → the mutant's cells re-execute first (killed → ruling retired); still surviving → re-ruling packet = old ruling + diff of every changed key input → an independent reviewer confirms or overturns (a `classifier` batch when only context bytes moved; a `consultant` otherwise). An `equivalent` ruling whose mutant is later killed = a ruling defect, ledgered.
+
+## U Update + refresh + migration
+
+- U1 `tools/mutation-update.sh` is cell-granular: unchanged M → execute only missing/stale cells (+ their prerequisite build cell); changed M → every required cell. A cell becomes current only through an authentic execution of its identical complete key.
+- U2 Full refresh (`--all`) at IMPLEMENT close + each MAINTAIN `Code review` request (not each closing-diff review): every cell re-executed; drift (status or witness class changed under an unchanged key) earns no credit until diagnosed: a key defect (harness fixed + probe added) or nondeterminism (cell → `inconclusive` with reason; flaky test fixed).
+- U3 Migration: a cell imports only when its complete new key is reconstructible from recorded invocation facts and matches; otherwise re-execute. Expected yield ≈ 0 (adaptive limits, adapter changes, unrecorded facts) ⇒ plan one full campaign: allowance 20–30 h on vflab for the 1,426-row universe + new U3 rows, resumable chunks, 6 h cap kept.
+
+## N Narrow stages
+
+- N1 Per-domain test exes: cases move into shared case modules, one `main` per exe root; the old→new case multiset is recorded and equal (case-preservation map).
+- N2 One registration-free dispatcher; domain handlers in their own modules; registration only in exe roots (`Main.lean` all; `fvapi-dev-<domain>` one). Narrow exes accept the full binary's argv; usage outside the domain → exit 2. Mutation adapters route suites' setup/build commands to the narrow targets too, or keep their broad closure honestly; gate suite commands stay unchanged on the full binary; baselines pass on both binaries.
+- N3 Applicability per mutant: s applies to m iff m's file ∈ B(s) and the preserved grading map assigns s to m's group; groups with heterogeneous applicability split (e.g. `Main.lean` vs CLI helpers). `smoke` (full binary) keeps P7's groups.
+- N4 Scope now: U2 Verify + U3 Json/Hash/Wire/Sys domains. Convention: each later unit delivers its narrow exes + stage registry files; U4's at U4A close.
+
+## Q Qualification (recorded before the full campaign)
+
+- Sandbox + rootfs: toolchain, `lake build`, HACL C compile and every stage's baseline pass inside cells on vflab + CI.
+- Selector differential: on a fixed sample, native `fvamut fresh` vs the selector → identical outcomes + killers (classification unchanged).
+- Projection: the cross-target config counterexample (P § Profile) is caught; silent cases stay silent.
+- Cost: listing memory, hashing + projection, unchanged-table check, the three G4 cells, CI audit shard cold/warm within its 60 min job limit; matched scenarios (isolated new domain + Main registration + isolated suite; shared-module edit; global Lake edit) → observed invalidations + hours.
+
+## S Residual (trusted, stated)
+
+- S1 Kernel, bubblewrap, CPU/hardware, and the host facts visible inside cells (`/proc`, `/dev`, `/sys`, clock); cross-host equivalence beyond the pinned userspace is an assumption that baselines, G4 and U2 observe but never prove.
+- S2 Nondeterminism (timing, scheduling): `inconclusive` / quarantine; reruns reduce, never prove.
+- S3 Ruling adequacy + authority completeness: reviewer judgment; U2 exposes a false `equivalent` only when its mutant becomes killed.
+- S4 Lean/Lake/compiler/fvamut classification correctness; SHA-256 collision resistance.
+- S5 Sandbox-defined credit (X2): credit is for the unchanged adapter's assertions in the declared sandbox fixture. The fixture, its absent paths and environmental preconditions included, must be a valid input/environment under the governing contract; hiding an object the contract requires invalidates the stage. A sandbox kill claims nothing about the mutant on an arbitrary host filesystem. Launcher or setup failure is never a test kill.
+- S6 Profile qualification: if an execution profile fails qualification, mutation is incomplete under that profile and delivery blocks. A replacement profile needs an explicit ruling, a distinct keyed profile identity, complete keyed mounted inputs, a stated residual and its own qualification; it stales the affected cells. Evidence never promotes across profiles; a failed qualification never selects host execution.
+- S7 The complete-key claim applies to the qualified profile recorded in each cell; a different or incompletely qualified boundary inherits no evidence.
+
+## P Probes (gate-probe: clean control → planted → fires naming its cause → restored)
+
+- Stale: mutated-module comment byte; two-span edit list (second replacement only); upstream import byte; test-exe helper outside the mutant's upstream; narrow exe root byte; stage registry file; adapter helper byte; D(s) fixture byte; unchanged-content chmod; symlink retarget; empty directory added; absent path appears; package `leanOptions`; owning declaration; a new `lean_lib` claiming an existing module; `input_file` contents only; native C/header byte; rootfs sha; toolchain runtime sha; capsule key; pinned python tree byte (stdlib file); caps value; X byte (every cell stale); witness P removed from the proof build; U removed from an exes target; ruling: `open`/instance context change with unchanged declaration bytes; a governing document added to the authority manifest; ledger pass revoked; M7 fixture (mutant path reaches module Y only under mutation; Y ∈ B(s)).
+- Silent: a new unrelated `lean_exe` + `lean_lib` + stage registry file; a module outside B(s); an uncited docs edit.
+- Profile: a direct `<target>.config` reference (`lean_exe chosen where moreLeanArgs := Auxiliary.config.moreLeanArgs`) and the global-helper wrapper (`def flags := Auxiliary.config.moreLeanArgs`) → the target's declaration joins the projection (key changes when Auxiliary changes); a `macro`/`elab` command in the lakefile → rc 2.
+- Baseline + boundary: a failed build baseline with a matching mutant diagnostic → incomplete, no witness; an `include_str` input or config-option change with unchanged ruling source → ruling stale; a mounted tool sibling outside the keyed set → absent from the cell; a non-exec permission-mode change → stale (or normalized); two different probe wall times under one caps entry → identical enforced deadline; a qualification failure → incomplete, never host evidence.
+- Integrity: forged status in a G4-selected cell → G4 fires; forged non-selected cell → U2 drift fires; corrupted key → stale; check rewriting the table → G5 fires; a stale native fvamut cache present + a P7b-only input changed → update re-executes (no promotion); earlier-cell marker file → invisible to the next cell; poisoned cached `.olean` with unchanged source → no current witness (X4).
+
+## I Gate integration + table schema
+
+- I1 Gate: `mutation-scope` + `mutation` stay on the `audit` shard; the rootfs + pinned-tool bootstrap precedes their first use on a clean shard (the shard has Lean + capsule only today); every new narrow root builds in `lean-build`; full-binary gate suites unchanged; mutation stays out of `FAST_STAGES` (printed as skipped); probe copies exclude `.lake/mutation` + campaign snapshots (they copy `.lake` wholesale today); the audit job stays within GitHub's 60 min limit; G4 on CI needs bwrap + unprivileged user namespaces (the runner's AppArmor sysctl set by the workflow).
+- I2 Table: versioned harness schema; canonical encoding + escaping + row order; full mutant identity; typed witness; per-cell evidence refs (status, key, provenance); ruling subject + key separate from outcomes; duplicate, retired, missing and extra rows rejected; elapsed time, RSS and host provenance kept out of the currency bytes. Scope, ruling, ledger and probe consumers change with the schema in one commit.
+
+## Owner map + order
+
+- First: the P7 queue (production fixes + regression fixtures from the survivor rulings) merges to main.
+- Then P7b-H (selector, sandbox, rootfs + tool pins, keys, projection, table schema, check/update/refresh, probes) ∥ P7b-N (dispatcher, handlers, case modules, exe roots, registry entries via the integrator). One integrator owns every shared file: `lakefile.lean`, `verify/mutation/**`, adapters, `tools/gate.sh`, `tools/gate-probe.sh`, the contract + ledger.
+- Then integrate → parity baselines (both binaries) → Q → migration → one full campaign → rulings (R2) → U2 close + the U3 mutation row.
+
+## Approval delta P7 → P7b (asked at freeze)
+
+1. Gate predicate: fvapi's harness replaces native `fvamut check`; currency per cell key + witness + ruling (E, K, G).
+2. Rulings: bound to module + closure context and a reviewed authority manifest; stale rulings re-confirmed by packet (R).
+3. Stage set: N1–N3 narrow stages, grading universe preserved case-for-case (map recorded); `smoke` stays full-binary.
+4. G4: three sampled cells replace three native seeded rows.
+5. Deadlines: fixed per-stage caps replace fvamut's probe-calibrated limits + solo retry.
+6. Execution boundary: every mutation build/test cell runs sandboxed on a pinned userspace, no network. Kill credit is for the declared sandboxed stage (S5), failures on paths that stage hides included; it does not assert the same kill on an unrestricted production host.
+7. Full refresh at IMPLEMENT close + each MAINTAIN `Code review` request.
+8. Migration: a full campaign (≈ 20–30 h on vflab).
+Unchanged: default operators, production scope, every case (none removed or demoted), strict G3.
+Build size: several builder sessions (P7 queue, P7b-H, P7b-N, integration) + the campaign. New host dependencies: bubblewrap on vflab + CI; rootfs, python and jq pins with Renovate rows. Judgment cost: every `Decisions` or governing-contract edit stales the `unspecified` rulings bound to it (≈ 130 today) → one classifier packet batch per such edit.
