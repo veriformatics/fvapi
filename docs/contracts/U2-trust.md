@@ -1,4 +1,4 @@
-# U2 Verification profile + trust harness — contract (agent-read; frozen after consultant-14's review)
+# U2 Verification profile + trust harness — contract (agent-read)
 
 Sources: `.agent/spec.md` `Decisions` → `Self-verification`, `Answer guarantee`, `Verification profile + gate`, `Gate + CI`, `Stack`; `docs/contracts/U1-foundation.md`; `.agent/archive/implement-spike.md` (F2/F6/F7); researcher-13 (fva trust + fvamut facts); consultant-14 (Q1–Q8); tester-1 assumptions A8 + A9 (ruled below).
 
@@ -45,6 +45,19 @@ Tier: kernel throughout. Delivery: commit A = P1–P4 (a provisional checkpoint:
 - Per domain: `<capsule fva> trust <fvapi> --spec-module FvapiSelf.<Domain> --root-module FvapiProofs --subject <module>… --paranoid --surface-budget <inventory budget> --canary-set <pinned> --known <pinned> --json` (explicit kernel + canary limit flags equal to the largest profile kernel `timeout_ms`), under a finite whole-invocation timeout + aggregate caps. Requires rc 0, a valid JSON envelope with `verdict = "pass"`, and a report whose claim / proof / subject identities equal the inventory and whose canary identities equal the profile; build or setup failure, malformed envelope, wrong claim set, timeout, crash or non-PASS fails, stderr + normalized cause kept. fva's module-level replay is an additional self-audit, never a substitute for P3.
 - Caps + subjects (ruling at P6): the pinned fva spells the budget `--surface-budget` (reviewed import-closure, non-subject project source lines; inventory budgets = the measured surface per domain: Policy 20, Profile 565, Json 253, Hash 11); the trust invocation runs unmodified, its build included, under a finite whole-invocation timeout (1800 s) + an aggregate RSS supervisor over its isolated process group (ceiling 8 GiB ≈ 2.8× the measured ≈ 3 GB peaks; exceedance = a named failing cause) + group reap on every exit — no `prlimit --as` (an address-space cap kills `lake build`: per-thread stacks + mmap'd .oleans); `prlimit --as` stays on P3's export / comparator / kernel processes; each row's `audit_subjects` = exactly the statement-frontier subject modules fva collects for that claim.
 - Scope = fvapi's own controlled source; fva's open gaps (D8 native-subject elaboration, D12 unsandboxed builds, D48/D49 unpinned oleans) bound what a PASS means; a delivered package earns the `Answer guarantee` through P3's caller-side path alone. Probes: planted `sorry`, custom axiom, recursive `partial` reached by a claim → FAIL with tags `axiom` / `axiom` / `override`; malformed success output → FAIL.
+
+## Survivor-review amendments (bind P2, P3 and the P3 regex subset; where earlier text differs, these bind)
+
+- P2 status_map: exit codes 0…128 are normal exits; Lean's process API reports a signal N as 128 + N, so codes 129…255 are ambiguous → the profile reader rejects a status_map key > 128 (field `kernels[i].status_map`); a normal exit 128 mapped by the profile yields its mapped status; rc ≥ 129 or a signal → `crash`.
+- P2 toolchain wording: `toolchain` = the installed toolchain's canonical id (`leanprover/lean4:v<version from lean --version>`), runtime identity validated separately.
+- P2 host diagnostics (Hdiag): host identity problems list every detected differing field; order is not significant.
+- P3 comparator cause: `timedOut`, an absent rc or rc ≥ 128 → `comparator_error` before stderr is read; rc 0 = success; a normal nonzero rc < 128 → the pinned semantic diagnostics (`forbidden_axiom`, `challenge_mismatch`), else `comparator_error`.
+- P3 causes: `causes[]` holds every distinct applicable cause the collected facts establish; order is not significant (tests compare sets).
+- P3 completeness: exactly one result per expected kernel — two results for three expected kernels = incomplete → `kernel_missing`, fail.
+- P2 caps: every `caps.*` value and every kernel `timeout_ms` ≥ 1 (GNU timeout: 0 disables the timeout); the reader names the field.
+- P2 diagnostics: field accuracy is fixed; detail wording is not.
+- P2 dev profile report (Dreport): every emitted report field is truthful about present facts; optional success-key presence stays unfrozen; dev usage errors exit 2; relative replay paths keep naming the same inputs across the subprocess cwd change (same PASS + identities as absolute argv); an explicit `--runtime` is honoured.
+- U2 regex subset (G1): matching takes the first LF-delimited matching line → leftmost start → longest whole span → greedy left-to-right parse among ties, capture = the last participating group iteration; escape grammar explicit; oracle = an independent AST reference over the full subset (+ Python `re` on a justified agreement class, `a?(ab)?` / `ab` as disagreement control). Baseline red (`^a*(a*)$` / `aaa`).
 
 ## P7 Mutation (`verify/mutation/{config.json,results.tsv,rulings.tsv}`)
 
