@@ -362,3 +362,10 @@ Independent persistence machine = files/inodes + directory bindings + completed-
 | T1 A | all P/C + K model declarations; production-binding deferred phase2 | `FvapiSelf.Store` model-coherence claims + `SurfaceConforms` |
 | P1–P5 / C1–C5 / R1–R3 (B tables fixed now) | S00–S17 / C20–C25,K05–K07 / K08–K11 | `Persistence`, native refinement pending B |
 | B1/B2 + T2 + acceptance A/B/C | structural bounds P00f/P24; C runtime parameter domains; V/K | no benchmark/native/proof/replay/mutation/compatibility evidence credited by this draft |
+
+## Errata (normative; each overrides the rows it names; steward = consultant-29, `.scratch/u4/steward.md`)
+
+- E-A7 (C08 basis, V04): a supplied `decision_operation` must equal the actual serial prestate, else `stale_basis`; Apply preserves the supplied basis unchanged.
+- E-A8 (P04a, read-object): a well-formed reference whose namespace/digest is outside the selected committed graph (staged or orphan) → `caller_reference`, decided before any file observation; references inside the selected graph keep their P04 length/kind outcomes.
+- E-A9 (C24 `byte_budget`, V13): counts the exact canonical V13 result bytes R, all metadata + cursor included, excluding V11/V01 framing.
+- E-A10 (I3 history, V08 import): a history fixture past 1,024 descriptors is built from 1,025 real one-command batches (pure mode: one keyed creation + 1,024 equal-key replays, one generated id; model/native: close/configure/open refills entropy tapes); import never appends history (1,025 segment files exceed its 1,024-attachment cap).
