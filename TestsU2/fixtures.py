@@ -31,6 +31,8 @@ lean_exe fixture where
 """
 SOURCES = {
     "lakefile.lean": LAKEFILE,
+    # F1: Lake's root manifest is an input, even when there are no dependencies.
+    "lake-manifest.json": '{"fixedToolchain":false,"lakeDir":".lake","name":"u2Fixture","packages":[],"packagesDir":".lake/packages","version":"1.3.0"}\n',
     "Fvapi.lean": "import Fvapi.Subject\n",
     "Main.lean": "import Fvapi\ndef main : IO Unit := pure ()\n",
     "Fvapi/Subject.lean": "namespace Fvapi.Subject\ndef double (n : Nat) : Nat := n + n\nend Fvapi.Subject\n",
@@ -67,9 +69,9 @@ def profile_id(path, value):
 
 
 def snapshot(package, target):
-    for name in ("lakefile.lean", "lean-toolchain", "Fvapi.lean", "Main.lean"):
+    for name in ("lakefile.lean", "lake-manifest.json", "lean-toolchain", "Fvapi.lean", "Main.lean"):
         write(target / name, (package / name).read_text())
-    files = {}
+    files = {"lake-manifest.json": sha(target / "lake-manifest.json")}
     for tree in ("Fvapi", "FvapiSpec", "FvapiSelf"):
         for source in sorted((package / tree).rglob("*.lean")):
             relative = source.relative_to(package).as_posix()
