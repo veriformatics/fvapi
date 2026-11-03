@@ -10,7 +10,7 @@ def adaptStatus (spec : KernelSpec) (rc : Option Nat) (timedOut : Bool)
   else match rc with
   | none => (.crash, none)
   | some rc =>
-    if rc ≥ 128 then (.crash, none)
+    if rc > 128 then (.crash, none)
     else match spec.statusMap.lookup rc with
     | some .accept => (.accept, none)
     | some .reject =>

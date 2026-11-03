@@ -63,6 +63,16 @@ def profileField (ms : List (String × Value)) : String :=
 def setField (k : String) (v : Value) (ms : List (String × Value)) : List (String × Value) :=
   ms.map fun m => if m.1 == k then (k, v) else m
 
+def kernelField (v : Value) : String :=
+  match Read.kernel "kernels[0]" v with
+  | .ok _ => "ok"
+  | .error p => p.field
+
+def kernelSet (key : String) (value : Value) (v : Value) : Value :=
+  match v with
+  | .obj ms => .object (if ms.any (·.1 == key) then setField key value ms else (key, value) :: ms)
+  | other => other
+
 /-- Prints PASS|FAIL per case, then the slowest case; exits with the failure count. -/
 def main : IO UInt32 := do
   let results ← [
@@ -75,6 +85,11 @@ def main : IO UInt32 := do
     check "cli: an unknown command prints usage on stderr, rc 2" fun _ =>
       dispatch ["frobnicate"] == ⟨.stderr, usage, 2⟩ &&
         dispatch ["--version", "x"] == ⟨.stderr, usage, 2⟩
+  , check "dev: replay rejects an unknown option pair before IO" fun _ =>
+      let valid := ["--package", "package", "--inventory", "package/verify/claims.json",
+        "--profile", "profile.json", "--expected-source", "expected-source", "--axioms", ""]
+      (Fvapi.Dev.replayFlags valid).isSome &&
+        (Fvapi.Dev.replayFlags (valid ++ ["--unexpected", "value"])).isNone
     -- Kernel policy controls (docs/contracts/U2-trust.md P1).
   , check "policy: leanchecker accept + five valid declines fails (no independent accept)" fun _ =>
       verdict [⟨.leanchecker, .accept⟩, ⟨.leancheckerParanoid, .decline "f"⟩,
@@ -115,10 +130,50 @@ def main : IO UInt32 := do
         Regex.search "^([a-c]*[^0-9]?)\\.$" "abcx." == some "abcx" &&
         ["(", "[", "[z-a]", "(a)(b)", "*x", "a|b", "\\"].all fun s =>
           (Regex.compile s).toOption.isNone,
+    check "regex G1: greedy tied parse gives the first star its repetitions" fun _ =>
+      Regex.search "^a*(a*)$" "aaa" == some "",
+    check "regex G1: nullable repeat captures its last empty iteration" fun _ =>
+      Regex.search "^(a*)*$" "a" == some "",
+    check "regex: repetition stays in its own atom, never re-enters an earlier piece" fun _ =>
+      Regex.search "(a*b+)" "bab" == some "b" &&
+        Regex.search "(b+a*)" "bab" == some "ba",
+    check "regex G1: first line, leftmost start, longest whole span" fun _ =>
+      Regex.search "^U:(.*)$" "noise\nU: \t\nU:named" == some " \t" &&
+        Regex.search "U:([a-z]+)" "U:a U:longer" == some "a" &&
+        Regex.search "a?(ab)?" "ab" == some "ab" &&
+        Regex.search "^U:(.*)$" "U:\nU:named" == some "",
+    check "regex Rescape: CR/TAB, literal escaped hyphen, inclusive equal range" fun _ =>
+      Regex.search "^(\\r)$" "\r" == some "\r" &&
+        Regex.search "^(\\t)$" "\t" == some "\t" &&
+        Regex.search "^([a\\-z])$" "-" == some "-" &&
+        Regex.search "^([a\\-z])$" "b" == none &&
+        Regex.search "^([a-a])$" "a" == some "a" &&
+        Regex.search "^([a-a])$" "b" == none &&
+        Regex.search "^(\\n)$" "\n" == none,
+    check "regex S6: plus needs one repetition" fun _ =>
+      Regex.search "^(a+)$" "" == none && Regex.search "^(a+)$" "a" == some "a",
+    check "regex S7/S10: terminal positive and negative classes compile and match" fun _ =>
+      (Regex.compile "(x)[^a]").toOption.isSome &&
+        Regex.search "(x)[^a]" "xb" == some "x" && Regex.search "(x)[^a]" "xa" == none &&
+        (Regex.compile "(x)[a]").toOption.isSome &&
+        Regex.search "(x)[a]" "xa" == some "x" && Regex.search "(x)[a]" "xb" == none,
+    check "regex S17/S19: nullable closure is matched-empty, not absent" fun _ =>
+      Regex.search "^a*a*(b?)$" "aa" == some "" &&
+        Regex.search "a*a*a*a*(b?)$" "" == some "" &&
+        Replay.adaptStatus { mappedKernel with declinePattern := some "^a*a*(b?)$" }
+          (some 4) false "aa" == (.decline "", some "unnamed_unsupported"),
+    check "regex S21/S22: last scalar and end boundary starts" fun _ =>
+      Regex.search "(b)" "ab" == some "b" && Regex.search "(a*)$" "b" == some "" &&
+        Regex.search "^(a*)$" "" == some "",
     check "replay status: accept/reject mappings ignore a decline-looking line" fun _ =>
       Replay.mapStatus mappedKernel (some 0) false "UNSUPPORTED:x" == .accept &&
         Replay.mapStatus mappedKernel (some 3) false "UNSUPPORTED:x" == .reject &&
         Replay.mapStatus mappedKernel (some 4) false "UNSUPPORTED:x" == .decline "x",
+    check "replay T128: normal mapped exit 128 accepts, higher signal encodings crash" fun _ =>
+      let k := { mappedKernel with statusMap := [(128, .accept), (129, .accept)] }
+      Replay.adaptStatus k (some 128) false "" == (.accept, none) &&
+        Replay.adaptStatus k (some 129) false "" == (.crash, none) &&
+        Replay.adaptStatus k (some 128) true "" == (.timeout, none),
     check "replay status: missing/unmapped/signal exits crash; deadline flag wins" fun _ =>
       [none, some 9, some 124, some 137, some 143].all (fun rc =>
         Replay.mapStatus mappedKernel rc false "UNSUPPORTED:x" == .crash) &&
@@ -149,6 +204,36 @@ def main : IO UInt32 := do
         [rs ++ rs, rs ++ [⟨.conRon, .accept⟩], rs.drop 1].all fun bad =>
           let (causes, v) := Replay.judge expected {} bad
           causes.contains "kernel_missing" && v == .fail,
+    check "replay Tcoverage: two accepts do not cover three expected kernels" fun _ =>
+      let expected := [KernelId.leanchecker, .nanoda, .conRon]
+      let rs := [⟨KernelId.leanchecker, KernelStatus.accept⟩, ⟨.nanoda, .accept⟩]
+      !Replay.complete expected rs && verdict rs == .pass &&
+        Replay.judge expected {} rs == (["kernel_missing"], .fail),
+    check "replay C2: every applicable cause once, independent of order" fun _ =>
+      let l := KernelId.leanchecker
+      let n := KernelId.nanoda
+      let c := KernelId.conLeche
+      let r := KernelId.conRon
+      let accepts := [⟨l, KernelStatus.accept⟩, ⟨n, .accept⟩]
+      let cases : List (List KernelId × Replay.Facts × List KernelResult × List String) := [
+        ([l, n, r], ⟨["kernel_identity_mismatch"], false, true, none⟩, accepts,
+          ["kernel_identity_mismatch", "challenge_mismatch", "kernel_missing"]),
+        ([l, n], ⟨[], false, false, none⟩, [], ["challenge_mismatch", "export_failed",
+          "kernel_missing", "insufficient_independent_kernels"]),
+        ([l, n], ⟨[], false, true, some "forbidden_axiom"⟩, [], ["challenge_mismatch",
+          "forbidden_axiom", "kernel_missing", "insufficient_independent_kernels"]),
+        ([l, n, c, r], {}, accepts ++ [⟨c, .crash⟩, ⟨r, .reject⟩],
+          ["kernel_crashed", "kernel_rejected"]),
+        ([l, n, c, r], {}, accepts ++ [⟨c, .reject⟩, ⟨r, .timeout⟩],
+          ["kernel_rejected", "kernel_timeout"]),
+        ([l, n, c, r], {}, accepts ++ [⟨c, .reject⟩, ⟨r, .decline " \t"⟩],
+          ["kernel_rejected", "unnamed_unsupported"]),
+        ([l, n], ⟨["challenge_mismatch", "challenge_mismatch"], false, true,
+          some "challenge_mismatch"⟩, accepts, ["challenge_mismatch"])]
+      cases.all fun (expected, facts, rs, wanted) =>
+        let (causes, v) := Replay.judge expected facts rs
+        v == .fail && decide causes.Nodup &&
+          causes.all wanted.contains && wanted.all causes.contains,
     check "replay verdict: snapshot/export/comparator/setup failures defeat acceptance" fun _ =>
       let rs := [⟨.leanchecker, .accept⟩, ⟨.nanoda, .accept⟩]
       let expected := [KernelId.leanchecker, .nanoda]
@@ -191,6 +276,15 @@ def main : IO UInt32 := do
           Replay.comparatorCause rc false "parse failure" == some "comparator_error") &&
         Replay.comparatorCause (some 0) true "" == some "comparator_error" &&
         Replay.comparatorCause (some 0) false "Illegal axiom detected:" == none,
+    check "replay C1: comparator terminal facts precede semantic stderr" fun _ =>
+      let markers := ["Illegal axiom detected: 'sorryAx'",
+        "Challenge and solution theorem statement do not match: 'claim'"]
+      let terminal := [(some 1, true), (none, false), (some 143, false), (some 128, false)]
+      terminal.all (fun (rc, expired) => markers.all fun stderr =>
+        Replay.comparatorCause rc expired stderr == some "comparator_error") &&
+        markers.all (fun stderr => Replay.comparatorCause (some 0) false stderr == none) &&
+        Replay.comparatorCause (some 1) false markers.head! == some "forbidden_axiom" &&
+        Replay.comparatorCause (some 1) false markers[1]! == some "challenge_mismatch",
     check "profile: argv reaches export directly or via a config value, not a config key" fun _ =>
       (Read.kernel "kernels[0]" (kernelValue ["{export}"])).toOption.isSome &&
         (Read.kernel "kernels[0]" (kernelValue ["{config}"]
@@ -230,6 +324,46 @@ def main : IO UInt32 := do
           "canaries.source_commit" &&
         profileField (setField "exporter" (.object [("executable", .str "bin/leanexport"),
           ("sha256", hexRun 64 'b')]) baseProfile) == "exporter.executable"
+  , check "profile T128: status maps admit 128 and reject ambiguous higher exits" fun _ =>
+      let k := kernelValue ["{export}"]
+      kernelField (kernelSet "status_map" (.object [("128", .str "accept")]) k) == "ok" &&
+        ["129", "255", "256"].all fun code =>
+          kernelField (kernelSet "status_map" (.object [(code, .str "reject")]) k) ==
+            "kernels[0].status_map",
+    check "profile C1: every cap and kernel deadline is positive" fun _ =>
+      ["export_ms", "comparator_ms", "memory_bytes"].all (fun name =>
+        let caps := .object (setField name (.int 0)
+          [("export_ms", .int 1), ("comparator_ms", .int 1), ("memory_bytes", .int 1)])
+        profileField (setField "caps" caps baseProfile) == "caps." ++ name) &&
+        kernelField (kernelSet "timeout_ms" (.int 0) (kernelValue ["{export}"])) ==
+          "kernels[0].timeout_ms",
+    check "profile C2: exporter pin diagnostics name the absent or malformed field" fun _ =>
+      profileField (setField "exporter" (.object [("executable", .str "/fixture")])
+        baseProfile) == "exporter.sha256" &&
+        [(64, 'g'), (63, 'a')].all fun (width, c) =>
+          profileField (setField "exporter" (.object [("executable", .str "/fixture"),
+            ("sha256", hexRun width c)]) baseProfile) == "exporter.sha256",
+    check "profile C3: nested config needs an export value, not scalar or empty array" fun _ =>
+      [.object [("debug", .bool false)], .object [("files", .arr [])]].all (fun config =>
+        kernelField (kernelValue ["{config}"] (some config)) == "kernels[0].args") &&
+        kernelField (kernelValue ["{config}"] (some (.object [("files",
+          .arr [.str "literal", .str "{export}"])]))) == "ok",
+    check "profile C4: decoded mapped statuses retain all three meanings" fun _ =>
+      [("accept", Mapped.accept), ("reject", .reject), ("decline", .decline)].all fun (s, m) =>
+        match Read.mapped "mapping" (.str s) with
+        | .ok got => got == m
+        | .error _ => false,
+    check "profile S9: canary commit is hex, not only the correct width" fun _ =>
+      profileField (setField "canaries" (.object [("source_repo", .str "repo"),
+        ("source_commit", hexRun 40 'g'), ("set_sha256", hexRun 64 'f'),
+        ("known_sha256", hexRun 64 '0'), ("files", .object [])]) baseProfile) ==
+          "canaries.source_commit",
+    check "profile S19: decline requires a capture; literal crash pattern remains valid" fun _ =>
+      let k := kernelValue ["{export}"]
+      kernelField (kernelSet "decline_pattern" (.str "^UNSUPPORTED:x$") k) ==
+          "kernels[0].decline_pattern" &&
+        kernelField (kernelSet "crash_pattern" (.str "deep recursion detected")
+          (kernelSet "decline_pattern" (.str "^UNSUPPORTED:(.*)$") k)) == "ok"
     -- JSON profile controls (docs/contracts/U3-codecs.md J3–J4; the blind suite is TestsU3).
   , check "json: members sorted, canonical text, jq escapes" fun _ =>
       (match decode "{\"b\":1,\"a\":[true,null,\"\\u007f/\\ud83d\\ude00\"]}".toUTF8 with

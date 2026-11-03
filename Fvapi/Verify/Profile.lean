@@ -113,6 +113,11 @@ def nat (path : String) : Value → Read Nat
   | .int n => if 0 ≤ n then pure n.toNat else throw ⟨path, "negative"⟩
   | _ => throw ⟨path, "not an integer"⟩
 
+def positive (path : String) (v : Value) : Read Nat := do
+  let n ← nat path v
+  unless n > 0 do throw ⟨path, "must be positive"⟩
+  return n
+
 def strs (path : String) : Value → Read (List String)
   | .arr xs => xs.mapIdxM fun i v => str s!"{path}[{i}]" v
   | _ => throw ⟨path, "not an array"⟩
@@ -157,7 +162,8 @@ def statusMap (path : String) (v : Value) : Read (List (Nat × Mapped)) := do
   let ms ← members path v
   ms.mapM fun (k, m) => do
     let some code := k.toNat? | throw ⟨join path k, "not an exit code"⟩
-    unless code ≤ 255 && toString code == k do throw ⟨join path k, "not an exit code"⟩
+    -- Lean reports signal N as 128 + N; only normal exits through 128 are unambiguous.
+    unless code ≤ 128 && toString code == k do throw ⟨path, "not a normal exit code (0…128)"⟩
     return (code, ← mapped (join path k) m)
 
 def hasPlaceholder (s placeholder : String) : Bool := (s.splitOn placeholder).length > 1
@@ -260,9 +266,9 @@ def parseProfile (v : Value) : Read Profile := do
     comparatorTargets := ← Read.strs "comparator.targets" (← Read.get "comparator" cms "targets")
     canaries
     policyVersion
-    exportMs := ← Read.nat "caps.export_ms" (← Read.get "caps" caps "export_ms")
-    comparatorMs := ← Read.nat "caps.comparator_ms" (← Read.get "caps" caps "comparator_ms")
-    memoryBytes := ← Read.nat "caps.memory_bytes" (← Read.get "caps" caps "memory_bytes")
+    exportMs := ← Read.positive "caps.export_ms" (← Read.get "caps" caps "export_ms")
+    comparatorMs := ← Read.positive "caps.comparator_ms" (← Read.get "caps" caps "comparator_ms")
+    memoryBytes := ← Read.positive "caps.memory_bytes" (← Read.get "caps" caps "memory_bytes")
     kernels }
 
 /-- Parses the profile and checks its run set for `scope`. -/

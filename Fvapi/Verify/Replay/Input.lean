@@ -68,16 +68,21 @@ structure Frozen where
   files : List (String × String)
   identity : String
 
+/-- Build outputs stay out of the frozen input set; fetched dependency sources stay in it. -/
+def inputPath (rel : String) : Bool :=
+  !rel.startsWith ".lake/" || rel == ".lake/packages" || rel.startsWith ".lake/packages/"
+
 /-- Snapshot files are regular source inputs; links cannot add a second mutable tree. -/
 partial def sourceFiles (root : System.FilePath) : IO (List String) := do
   let rec walk (rel : String) (files : List String) : IO (List String) := do
     let mut files := files
     for e in ← (root / rel).readDir do
       let r := if rel.isEmpty then e.fileName else rel ++ "/" ++ e.fileName
-      match (← e.path.symlinkMetadata).type with
-      | .dir => files ← walk r files
-      | .file => files := r :: files
-      | _ => throw <| IO.userError s!"snapshot contains a non-regular input: {r}"
+      if inputPath r then
+        match (← e.path.symlinkMetadata).type with
+        | .dir => files ← walk r files
+        | .file => files := r :: files
+        | _ => throw <| IO.userError s!"snapshot contains a non-regular input: {r}"
     return files
   return (← walk "" []).mergeSort (· < ·)
 

@@ -128,15 +128,13 @@ private def runKernel (opts : Options) (pre directory solution : System.FilePath
   return ⟨⟨k.id, status⟩, process, configId, cause⟩
 
 private def runClaim (opts : Options) (pre directory challenge : System.FilePath)
-    (p : Profile) (snapshotId treeId : String) (claim : Claim) : IO Record := do
+    (p : Profile) (claim : Claim) (progress : IO.Ref Record) : IO Record := do
   IO.FS.createDirAll directory
   let cfg := config claim opts.axioms
   let configPath := directory / "comparator.json"
   IO.FS.writeBinFile configPath (print cfg)
   makeReadOnly configPath
-  let mut record : Record := {
-    claim, profile := p.id, snapshot := snapshotId
-    snapshotTree := treeId, config := identity cfg }
+  let record ← progress.get
   let targets := ([claim.proof] ++ opts.axioms ++ p.comparatorTargets).eraseDups
   let args := #["env", (resolve pre p.exporter.executable).toString, claim.proofModule, "--"] ++
     targets.toArray
@@ -152,38 +150,43 @@ private def runClaim (opts : Options) (pre directory challenge : System.FilePath
     return { record with facts := { exportsOk := false }, diagnostics := ["empty export"] }
   makeReadOnly c.stdoutPath
   makeReadOnly s.stdoutPath
-  record := { record with exports := .object [("challenge_sha256", .str challengeHash),
+  progress.set { record with exports := .object [("challenge_sha256", .str challengeHash),
     ("solution_sha256", .str solutionHash)] }
   let comp ← runProcess opts.packagePath directory "comparator" p.comparatorMs p.memoryBytes
     (resolve pre p.comparator.executable).toString #["comparator", "--config", configPath.toString,
       "--challenge-from-export", c.stdoutPath.toString,
       "--solution-from-export", s.stdoutPath.toString]
   let cause := comparatorCause comp.rc comp.timedOut comp.stderr
-  record := { record with
+  let record ← progress.get
+  progress.set { record with
     comparator := .object [("status", .str (if comp.ok then "accept" else
       if comp.timedOut then "timeout" else "error")), ("rc", rcJson comp.rc),
       ("wall_ms", .int comp.wallMs)]
     facts := { comparatorCause := cause }
     diagnostics := if cause.isSome then [comp.stderr] else [] }
+  let record ← progress.get
   unless (← digestMatches c.stdoutPath challengeHash) &&
       (← digestMatches s.stdoutPath solutionHash) do
     return { record with facts := { record.facts with exportsOk := false } }
   if cause.isSome then return record
   for k in p.kernels do
+    let record ← progress.get
     let problems ← checkPinned pre "kernel" k.pinned
     unless problems.isEmpty do
       return { record with
-        facts := { record.facts with setupCauses := ["kernel_identity_mismatch"] }
+        facts := { record.facts with
+          setupCauses := record.facts.setupCauses ++ ["kernel_identity_mismatch"] }
         diagnostics := problems.map (fun x => x.detail) }
     let result ← runKernel opts pre directory s.stdoutPath p k
-    record := { record with
+    let record := { record with
       kernels := record.kernels ++ [result]
       facts := { record.facts with
         setupCauses := record.facts.setupCauses ++ result.cause.toList } }
+    progress.set record
     unless (← digestMatches s.stdoutPath solutionHash) &&
         (← digestMatches c.stdoutPath challengeHash) do
       return { record with facts := { record.facts with exportsOk := false } }
-  return record
+  progress.get
 
 private def hostCause (pre : System.FilePath) (p : Profile) (problems : List Problem) :
     IO String := do
@@ -217,7 +220,7 @@ private def executeWith (opts : Options) (directory : System.FilePath) (inv : In
   let built ← runProcess opts.packagePath directory "solution-build" p.exportMs p.memoryBytes
     lake (#["build"] ++ inv.roots.toArray)
   unless (← stillFrozen opts.expectedSource frozen true) &&
-      (← stillFrozen challenge challengeFrozen false) do
+      (← stillFrozen challenge challengeFrozen true) do
     return ← failure opts inv "challenge_mismatch"
       "frozen inputs changed during solution build" p.id
   unless built.ok do return ← failure opts inv "export_failed" built.stderr p.id
@@ -237,15 +240,20 @@ private def executeWith (opts : Options) (directory : System.FilePath) (inv : In
     return ← failure opts inv "export_failed" (builtChallenge.stderr ++ output) p.id
   let mut records := []
   for (claim, i) in inv.claims.zipIdx do
-    let r ← try
-      runClaim opts pre (directory / s!"claim-{i}") challenge p snapshotId frozen.identity claim
-    catch e => pure {
+    -- Exception boundaries retain committed observations, not the stack's last local snapshot.
+    let progress ← IO.mkRef ({
       claim, profile := p.id, snapshot := snapshotId, snapshotTree := frozen.identity
-      config := identity (config claim opts.axioms), facts := { exportsOk := false }
-      diagnostics := [s!"{e}"] }
+      config := identity (config claim opts.axioms) } : Record)
+    let r ← try
+      runClaim opts pre (directory / s!"claim-{i}") challenge p claim progress
+    catch e => do
+      let record ← progress.get
+      pure { record with
+        facts := { record.facts with exportsOk := false }
+        diagnostics := record.diagnostics ++ [s!"{e}"] }
     records := records ++ [r]
   let inputsOk := (← stillFrozen opts.expectedSource frozen true) &&
-    (← stillFrozen challenge challengeFrozen false)
+    (← stillFrozen challenge challengeFrozen true)
   let mut allPass := !records.isEmpty && records.length == inv.claims.length
   let expected := p.kernels.map (·.id)
   for r in records do
