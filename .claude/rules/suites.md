@@ -2,3 +2,4 @@
 
 - Standing approval: when the independent table steward rules, citing exact table rows, that a blind-suite expectation contradicts the frozen contract tables, the blind tester applies the correction. Each correction is ledgered per case (id, ruling, old → new expectation) in the tester's deliverable.
 - Builders never edit blind suites. A correction that drops, skips, demotes or weakens a case, or changes a contract promise rather than a misread of it, still goes to the user first.
+- A contract amendment that makes existing fixtures invalid (a required input missing) may be adapted by the builder implementing that amendment, with MAIN's per-change approval: one separate commit, assertion and case code byte-identical, affected ids listed, the diff reviewed by MAIN before merge.
