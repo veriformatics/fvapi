@@ -15,7 +15,7 @@ Tier: kernel (gate verdict). Claim shape: currency preserves authentic execution
 - X1 Every build and test cell runs in a fresh bubblewrap sandbox launched by the unsandboxed orchestrator (AppArmor's unprivileged-userns restriction, as on vflab, denies nested user namespaces → never sandbox-in-sandbox): `/` = the pinned userspace rootfs (read-only); read-only binds: toolchain prefix, capsule (cells that use it), the declared pinned tool trees the cell executes (never `.tools` wholesale), the cell's declared inputs + built artifacts; a build cell's worker build tree writable; fresh tmpfs `/tmp`, `HOME` + stage scratch; `--unshare-all` (no network); stdin `/dev/null`; only fds 0–2; fixed cwd, umask + process attributes; env = allowlist with fixed values. Every mounted node belongs to a completely keyed immutable tree, a provenance-validated artifact tree, pristine scratch, or an S1 residual.
 - X2 Paths outside the bound set do not exist in a cell ⇒ a cell observes exactly its key's inputs plus the host facts S1 names. A mutant's attempt to reach an unbound path is part of its sandboxed behavior; its outcome stays a function of the key (S5 states the credit consequence).
 - X3 Userspace: a sha256-pinned rootfs tarball (`tools/fetch-tools.sh` + Renovate) with bash, coreutils, util-linux, libc + its headers (the HACL C build reads `/usr/include`); python + jq as pinned trees (inside the rootfs or `.tools`); every executed tool's whole installation tree covered by a pinned identity, revalidated before use; a stable `python3` shim first on `PATH`.
-- X4 Build provenance: each campaign's primary build runs from an empty build directory in a build cell; mutant worker trees copy that build; Lake's UInt64 traces are never a provenance proof.
+- X4 Build provenance: each campaign's primary build runs from an empty build directory in a build cell; mutant worker trees copy that build; Lake's UInt64 traces are never a provenance proof. Mutant discovery + classification read only authenticated empty-build project facts, a per-cell B-scoped classification config and an authenticated unmutated fact view — never host-cached project `.olean`s; the engine key covers every executable artifact the selector loads (imported engine `.olean`s + ELFs), not the capsule lock bytes alone.
 
 ## K Keys
 
@@ -49,7 +49,7 @@ Tier: kernel (gate verdict). Claim shape: currency preserves authentic execution
 ## U Update + refresh + migration
 
 - U1 `tools/mutation-update.sh` is cell-granular: unchanged M → execute only missing/stale cells (+ their prerequisite build cell); changed M → every required cell. A cell becomes current only through an authentic execution of its identical complete key.
-- U2 Full refresh (`--all`) at IMPLEMENT close + each MAINTAIN `Code review` request (not each closing-diff review): every cell re-executed; drift (status or witness class changed under an unchanged key) earns no credit until diagnosed: a key defect (harness fixed + probe added) or nondeterminism (cell → `inconclusive` with reason; flaky test fixed).
+- U2 Full refresh (`--all`) at IMPLEMENT close + each MAINTAIN `Code review` request (not each closing-diff review): every cell re-executed; drift (status or witness class changed under an unchanged key) earns no credit until diagnosed: a key defect (harness fixed + probe added) or nondeterminism (cell → `inconclusive` with reason; flaky test fixed). A baseline/setup cell that passed before and now fails under an unchanged key is drift (persisted, no credit until diagnosed); a first-ever setup failure is an incomplete record, not drift.
 - U3 Migration: a cell imports only when its complete new key is reconstructible from recorded invocation facts and matches; otherwise re-execute. Expected yield ≈ 0 (adaptive limits, adapter changes, unrecorded facts) ⇒ plan one full campaign: allowance 20–30 h on vflab for the 1,426-row universe + new U3 rows, resumable chunks, 6 h cap kept.
 
 ## N Narrow stages
@@ -60,6 +60,8 @@ Tier: kernel (gate verdict). Claim shape: currency preserves authentic execution
 - N4 Scope now: U2 Verify + U3 Json/Hash/Wire/Sys domains. Convention: each later unit delivers its narrow exes + stage registry files; U4's at U4A close.
 
 ## Q Qualification (recorded before the full campaign)
+
+- Binding: a profile qualification binds S (stage definitions + caps) + E (engine/selector identity) + X (execution boundary + runtime/rootfs) and records the exact non-M baseline refs it ran — never a bare `passed:true`. Source (B/L) edits need current K5b baselines, not a new two-host qualification; a change to any S/E/X input re-opens qualification for the affected stages on vflab + CI. Producer receipts are content-addressed (build cell id/key/M, exact output SHA, recursive passing-baseline producer ref), kept apart from current cell outcomes; consumers bind the exact receipt SHA.
 
 - Sandbox + rootfs: toolchain, `lake build`, HACL C compile and every stage's baseline pass inside cells on vflab + CI.
 - Selector differential: on a fixed sample, native `fvamut fresh` vs the selector → identical outcomes + killers (classification unchanged).
