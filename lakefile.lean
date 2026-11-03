@@ -97,6 +97,15 @@ lean_exe fvapi where
 lean_exe «fvapi-tests» where
   root := `Tests
 
+lean_exe «fvapi-tests-host» where
+  root := `tests.verify.Host
+
+lean_exe «fvapi-tests-regex» where
+  root := `tests.verify.Regex
+
+lean_exe «fvapi-tests-replay» where
+  root := `tests.replay.Io
+
 /-- Blind U2 suite: the shipped kernel policy vs an independent oracle. -/
 lean_lib TestsU2 where
   globs := #[.submodules `TestsU2]

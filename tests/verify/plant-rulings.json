@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "rulings": [
+    {
+      "id": "Fvapi/Verify/Profile.lean:Fvapi.Verify.Read.nat:LIT:0",
+      "source_sha256": "8a96a8679dffe265717ab4f994d2235b8874f80c43325be298f98f146a2a1c3a",
+      "reviewer": "MAIN",
+      "reason": "ruled: diagnostic freedom (consultant-19 S2/S3, MAIN confirmation after Read.positive)",
+      "contract": "U2 P2: caps positive; zero rejects naming the same field; diagnostic detail free. P7b re-confirmation required; no mutation credit."
+    },
+    {
+      "id": "Fvapi/Verify/Profile.lean:Fvapi.Verify.Read.nat:ROR:0",
+      "source_sha256": "8a96a8679dffe265717ab4f994d2235b8874f80c43325be298f98f146a2a1c3a",
+      "reviewer": "MAIN",
+      "reason": "ruled: diagnostic freedom (consultant-19 S2/S3, MAIN confirmation after Read.positive)",
+      "contract": "U2 P2: caps positive; zero rejects naming the same field; diagnostic detail free. P7b re-confirmation required; no mutation credit."
+    },
+    {
+      "id": "Fvapi/Verify/Replay.lean:_private.0.Fvapi.Verify.Replay.executeWith:LCR:0",
+      "source_sha256": "7f7da4742ada976ae7d05c75198604c82f977b0257a4157da7e1cb559f36f4f8",
+      "reviewer": "MAIN",
+      "reason": "ruled: redundant guard behind Read.positive (call-graph evidence above; MAIN confirmation; consultant-33.md:95)",
+      "contract": "executeWith always reads checkProfile; every cap passes Read.positive. Options/Inventory callers cannot inject a Profile. Positive inputs make these weakened guards identical. P7b re-confirmation required; no mutation credit."
+    },
+    {
+      "id": "Fvapi/Verify/Replay.lean:_private.0.Fvapi.Verify.Replay.executeWith:LCR:1",
+      "source_sha256": "7f7da4742ada976ae7d05c75198604c82f977b0257a4157da7e1cb559f36f4f8",
+      "reviewer": "MAIN",
+      "reason": "ruled: redundant guard behind Read.positive (call-graph evidence above; MAIN confirmation; consultant-33.md:95)",
+      "contract": "executeWith always reads checkProfile; every cap passes Read.positive. Options/Inventory callers cannot inject a Profile. Positive inputs make these weakened guards identical. P7b re-confirmation required; no mutation credit."
+    },
+    {
+      "id": "Fvapi/Verify/Replay.lean:_private.0.Fvapi.Verify.Replay.executeWith:ROR:0",
+      "source_sha256": "7f7da4742ada976ae7d05c75198604c82f977b0257a4157da7e1cb559f36f4f8",
+      "reviewer": "MAIN",
+      "reason": "ruled: redundant guard behind Read.positive (call-graph evidence above; MAIN confirmation; consultant-33.md:95)",
+      "contract": "executeWith always reads checkProfile; every cap passes Read.positive. Options/Inventory callers cannot inject a Profile. Positive inputs make these weakened guards identical. P7b re-confirmation required; no mutation credit."
+    },
+    {
+      "id": "Fvapi/Verify/Replay.lean:_private.0.Fvapi.Verify.Replay.executeWith:ROR:1",
+      "source_sha256": "7f7da4742ada976ae7d05c75198604c82f977b0257a4157da7e1cb559f36f4f8",
+      "reviewer": "MAIN",
+      "reason": "ruled: redundant guard behind Read.positive (call-graph evidence above; MAIN confirmation; consultant-33.md:95)",
+      "contract": "executeWith always reads checkProfile; every cap passes Read.positive. Options/Inventory callers cannot inject a Profile. Positive inputs make these weakened guards identical. P7b re-confirmation required; no mutation credit."
+    },
+    {
+      "id": "Fvapi/Verify/Replay.lean:_private.0.Fvapi.Verify.Replay.executeWith:ROR:2",
+      "source_sha256": "7f7da4742ada976ae7d05c75198604c82f977b0257a4157da7e1cb559f36f4f8",
+      "reviewer": "MAIN",
+      "reason": "ruled: redundant guard behind Read.positive (call-graph evidence above; MAIN confirmation; consultant-33.md:95)",
+      "contract": "executeWith always reads checkProfile; every cap passes Read.positive. Options/Inventory callers cannot inject a Profile. Positive inputs make these weakened guards identical. P7b re-confirmation required; no mutation credit."
+    }
+  ]
+}

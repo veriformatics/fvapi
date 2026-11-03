@@ -112,7 +112,8 @@ lean_style() { bash tools/lean-style.sh; }
 # variables (probes plant both).
 lean_build() {
     lake build Fvapi FvapiProofs TestsU2 TestsU3 TestsU3B fvapi «fvapi-tests» «fvapi-tests-u2» \
-        «fvapi-tests-u3» «fvapi-tests-u3-oracle» «fvapi-tests-u3b»
+        «fvapi-tests-u3» «fvapi-tests-u3-oracle» «fvapi-tests-u3b» \
+        «fvapi-tests-host» «fvapi-tests-regex» «fvapi-tests-replay»
 }
 
 # The driver's cases, then the blind U2 policy suite (exhaustive differential vs its oracle).
@@ -120,11 +121,17 @@ lean_test() {
     local rc=0
     lake test || rc=1
     lake exe «fvapi-tests-u2» all || rc=1
+    python3 -I tests/verify/regex-oracle.py || rc=1
     return $rc
 }
 
 # The shipped binary end to end: output streams + exit codes (docs/api.md).
-cli() { bash tests/cli/smoke.sh "$root/.lake/build/bin/fvapi"; }
+cli() {
+    local rc=0
+    bash tests/cli/smoke.sh "$root/.lake/build/bin/fvapi" || rc=1
+    python3 -I tests/verify/run.py usage || rc=1
+    return $rc
+}
 
 # Each purpose-built check passes on a clean copy, fails on its planted input, passes restored.
 probes() { bash tools/gate-probe.sh --base; }
@@ -141,7 +148,13 @@ self_audit() {
 }
 
 # verify/profile.json names exactly the kernels, exporter, comparator + runtime this host executes.
-profile() { bash tools/check-profile.sh; }
+profile() {
+    local rc=0
+    bash tools/check-profile.sh || rc=1
+    python3 -I tests/verify/run.py host || rc=1
+    python3 -I tests/verify/run.py profile || rc=1
+    return $rc
+}
 
 # verify/claims.json ↔ the elaborated closed claims, proof types, call paths, matrix rows (U2 P4).
 inventory() {
@@ -152,7 +165,7 @@ inventory() {
     lake env lean --run tools/lean/Inventory.lean
 }
 
-# Blind U2 groups (152/25/19) + input (1), process-tree (2), subtree (1), worker (4) controls.
+# Blind U2 groups + replay binding, process ownership + ruled fault controls.
 blackbox() {
     local rc=0
     bash TestsU2/run-blackbox.sh profile || rc=1
@@ -162,6 +175,12 @@ blackbox() {
     bash tests/replay/process-tree.sh || rc=1
     bash tests/replay/proof-subtree.sh || rc=1
     bash tests/replay/blackbox-workers.sh || rc=1
+    bash tests/replay/rc-json-exact.sh || rc=1
+    bash tests/replay/placeholder-substitution.sh || rc=1
+    python3 -I tests/replay/bindings.py exit128 || rc=1
+    python3 -I tests/replay/bindings.py relative || rc=1
+    python3 -I tests/replay/ruled.py --prebuilt || rc=1
+    python3 -I tests/replay/process-controls.py all --prebuilt || rc=1
     return $rc
 }
 

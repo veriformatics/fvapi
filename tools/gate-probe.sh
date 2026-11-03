@@ -345,6 +345,25 @@ inventory_embed_stage() {
 }
 probe inventory-embedded-source plant_inventory_embed "embedded checker source changed binary" inventory_embed_stage
 
+# P7 zero-site controls: well-typed serializer + substitution defects must fail assertions.
+plant_rc_json() {
+    sed -i 's/)).getD .null/)).getD (.int 0)/' Fvapi/Verify/Replay.lean
+}
+probe replay-rc-json-exact plant_rc_json "assertion: replay-rc-json-exact" \
+    bash tests/replay/rc-json-exact.sh
+plant_placeholder_substitution() {
+    python3 -I - <<'PY'
+from pathlib import Path
+path = Path("Fvapi/Verify/Replay.lean")
+text = path.read_text()
+old = '    |>.replace "{axioms}" (",".intercalate axioms)'
+assert text.count(old) == 1
+path.write_text(text.replace(old, '    |>.replace "{unbound_axioms}" (",".intercalate axioms)'))
+PY
+}
+probe replay-placeholder-substitution plant_placeholder_substitution \
+    "assertion: replay-placeholder-substitution" bash tests/replay/placeholder-substitution.sh
+
 # lean-style: a tab in a Lean source.
 plant_tab() { printf '\t-- tab\n' >>Fvapi/Version.lean; }
 probe lean-style plant_tab ": tab" bash tools/lean-style.sh
