@@ -56,7 +56,7 @@
       "audit_subjects": [
         "Fvapi.Verify.Profile"
       ],
-      "reviewed_surface_budget": 565,
+      "reviewed_surface_budget": 608,
       "expected_snapshot": "sha256:99c5663d3e78270c52bac9dcc0a01c74c2bf4d6bf561bc76657b04dacaf8b991",
       "shipped_call_paths": [
         "Fvapi.Verify.runSetOk"
