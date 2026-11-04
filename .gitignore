@@ -1,6 +1,8 @@
 # machine-local facts
 CLAUDE.local.md
 .scratch/
+# gate step ledger (tools/gate.sh; kept across runs by tools/vflab-run)
+.gate/
 # vflab installer: downloaded ISO, build output, installed image, QEMU test state
 ops/vflab/dl/
 ops/vflab/out/

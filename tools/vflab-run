@@ -4,9 +4,9 @@
 # Workspace ~/gate/ws/<worktree>-<8 hex of sha256(worktree path)>: before each run, under one
 # lock, it becomes a git clone at this worktree's HEAD (pushed to the bare ~/gate/repo.git, so
 # history-reading stages see it) with exactly the worktree's tracked + untracked-unignored files;
-# .lake/ + .tools/ persist as caches. The lock, the sync and the command live in one systemd unit,
-# so a dropped connection cannot free the workspace while the command still runs; a second
-# worktree whose path hashes to the same id is refused. The slice must already exist with its
+# .lake/ + .tools/ persist as caches, .gate/ as the gate's step ledger. The lock, the sync and the
+# command live in one systemd unit, so a dropped connection cannot free the workspace while the
+# command still runs; a second worktree whose path hashes to the same id is refused. The slice must already exist with its
 # caps (tools/bootstrap-vflab.sh): systemd would otherwise create an empty one on demand.
 # The unit is Type=oneshot (a simple service counts SIGTERM as success → a false green) with
 # --expand-environment=no (arguments stay literal) and IgnoreSIGPIPE=no (local shell semantics).
@@ -67,8 +67,8 @@ git -C "$ws" fetch -q origin "$ref" || fail "fetch failed"
 git -C "$ws" reset -q --hard FETCH_HEAD || fail "reset failed"
 rm -rf "$ws/.incoming" && mkdir "$ws/.incoming" || fail "staging failed"
 tar -C "$ws/.incoming" -xf - || fail "file stream truncated"
-rsync -a --delete --exclude=/.git/ --exclude=/.lake/ --exclude=/.tools/ --exclude=/.incoming/ \
-    "$ws/.incoming/" "$ws/" || fail "file sync failed"
+rsync -a --delete --exclude=/.git/ --exclude=/.lake/ --exclude=/.tools/ --exclude=/.gate/ \
+    --exclude=/.incoming/ "$ws/.incoming/" "$ws/" || fail "file sync failed"
 rm -rf "$ws/.incoming"
 cd "$ws" || fail "workspace missing"
 "$@" </dev/null'

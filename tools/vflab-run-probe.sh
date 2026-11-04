@@ -65,6 +65,12 @@ printf 'canary\n' >"$root/.scratch/probe-canary"
 rc=$?
 rm -f "$root/.scratch/probe-canary"
 check ignored-file "rc $rc, want 0 (absent remotely)" test "$rc" -eq 0
+# The gate's step ledger (.gate/) outlives the reset, like the caches.
+"$run" bash -c 'mkdir -p .gate && printf kept >.gate/probe-kept' >/dev/null 2>&1
+"$run" test -e .gate/probe-kept >/dev/null 2>&1
+rc=$?
+"$run" rm -f .gate/probe-kept >/dev/null 2>&1
+check ledger-kept "rc $rc, want 0 (kept across runs)" test "$rc" -eq 0
 printf '#!/bin/sh\n' >"$root/probe-exec.sh"
 chmod +x "$root/probe-exec.sh"
 ln -s probe-exec.sh "$root/probe-link"
