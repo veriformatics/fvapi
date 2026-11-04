@@ -120,13 +120,15 @@ raise SystemExit(result.returncode)
         kill.chmod(0o755)
         child_file, probes = root / "child.pid", root / "probes.jsonl"
         leader = root / "leader.py"
+        # The pid is published by rename: a reader never sees the created-but-unwritten file.
         leader.write_text('''import os,signal,sys
 from pathlib import Path
 pid=os.fork()
 if pid==0:
  fd=os.open("/dev/null",os.O_RDWR);os.dup2(fd,1);os.dup2(fd,2);os.close(fd)
  while True: signal.pause()
-Path(sys.argv[1]).write_text(str(pid))
+Path(sys.argv[1]+".tmp").write_text(str(pid))
+os.replace(sys.argv[1]+".tmp",sys.argv[1])
 ''')
         env = dict(os.environ, PATH=str(bin_dir) + ":" + os.environ["PATH"], REAP_PROBES=str(probes))
         process = subprocess.Popen([str(HARNESS), "process", str(root), "2000", "python3", "-I",
@@ -135,8 +137,10 @@ Path(sys.argv[1]).write_text(str(pid))
         end = time.monotonic() + 15
         released = False
         while time.monotonic() < end:
-            if child_file.exists():
-                pid = int(child_file.read_text())
+            if pid is None and not released and child_file.exists():
+                # Empty = created, not yet written: a writer without the rename still races here.
+                text = child_file.read_text()
+                pid = int(text) if text else None
             observed = [json.loads(line) for line in probes.read_text().splitlines()] if probes.exists() else []
             if pid is not None and not released and any(r["rc"] == 0 for r in observed):
                 # The first real kill(-pgid,0) has observed the held child. Only now may it be reaped.
