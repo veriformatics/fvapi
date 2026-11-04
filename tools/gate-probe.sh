@@ -141,6 +141,28 @@ usage() {
 }
 probe gate-usage plant_marker "usage: tools/gate.sh" usage
 
+# G5: each stage's verdict + wall-clock lands in the step ledger as it ends (a red row
+# `unclassified`; tree = the graded file set, an untracked file included); an unwritable ledger
+# fails the run, named.
+plant_ledger() { rm -rf .gate && mkdir -p .gate/ledger.tsv; }
+ledger_rows() {
+    local out rc tree want
+    printf 'untracked\n' >probe-untracked
+    out="$(run_main $'\nok-stage probe\nred-stage probe\n' \
+        'ok_stage() { return 0; }; red_stage() { return 3; }' --shard probe)"
+    rc=$?
+    printf '%s\n' "$out"
+    git add -A && tree="$(git write-tree)" || return 1
+    want="$tree"$'\tshard:probe\tok-stage\tgreen\t-\n'"$tree"$'\tshard:probe\tred-stage\tred\tunclassified'
+    [[ $rc -eq 1 && "$out" == *"FAILED: red-stage"* && "$out" != *ledger* &&
+        "$tree" != "$(git rev-parse 'HEAD^{tree}')" &&
+        "$(head -n 1 .gate/ledger.tsv)" == $'date\ttree\tkind\tstep\tseconds\tverdict\tclass' &&
+        "$(tail -n +2 .gate/ledger.tsv | cut -f2-4,6,7)" == "$want" ]] &&
+        awk -F'\t' 'NR > 1 && !(NF == 7 && $1 ~ /^[0-9-]+T[0-9:]+Z$/ && $5 ~ /^[0-9]+\.[0-9]$/) {
+            bad = 1 } END { exit bad }' .gate/ledger.tsv
+}
+probe gate-ledger plant_ledger "ledger: cannot append" ledger_rows
+
 # G3: a stage whose tool is absent fails (control: shellcheck on PATH).
 shell_stage() {
     if [[ -e .planted ]]; then

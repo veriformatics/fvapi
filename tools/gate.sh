@@ -2,9 +2,10 @@
 # The one gate command: a human, an agent and CI run exactly this, so one result is one claim.
 # Run it on vflab (user ruling: all fvapi work runs there): tools/vflab-run bash tools/gate.sh.
 # Stages run to completion after a failure, each in a subshell (a stage that exits cannot end the
-# run), so one run reports every problem; each prints `<stage> rc=N <s>s`, the run closes on
-# `gate rc=N <s>s`. A missing tool or one whose pinned identity fails fails its stage: an
-# unavailable tool = gate incomplete, never green. Contract: docs/contracts/U1-foundation.md.
+# run), so one run reports every problem; each prints `<stage> rc=N <s>s` + appends it to the step
+# ledger, the run closes on `gate rc=N <s>s`. A missing tool or one whose pinned identity fails
+# fails its stage: an unavailable tool = gate incomplete, never green. Contract:
+# docs/contracts/U1-foundation.md.
 # Usage: tools/gate.sh [--shard NAME] — no argument = every stage; a shard = its stages alone
 # (CI runs one job per shard, see STAGES).
 set -uo pipefail
@@ -20,14 +21,59 @@ elapsed() {
     printf '%d.%d' $((us / 1000000)) $((us / 100000 % 10))
 }
 
+# Step ledger = the record of which stages buy signal (CLAUDE.md `Execution`): one TSV row per
+# stage per run, appended to the gitignored .gate/ledger.tsv of the run's root as the stage ends
+# (tools/vflab-run keeps it across runs). Columns: date (run start, UTC), tree (the graded file
+# set: tracked + untracked-unignored, so HEAD alone would miss uncommitted edits), kind (gate |
+# shard:NAME | fast), step, seconds, verdict (green | red), class (`-` | a red's `unclassified`
+# until tools/gate-ledger.sh classifies it). An unwritable ledger fails the run, named `ledger`.
+ledger="$root/.gate/ledger.tsv"
+ledger_kind=""
+ledger_ok=1
+
+gated_tree() {
+    local tmp tree
+    tmp="$(mktemp -d)" || return 1
+    cp -- "$(git rev-parse --git-path index 2>/dev/null)" "$tmp/index" 2>/dev/null
+    tree="$(GIT_INDEX_FILE="$tmp/index" git add -A 2>/dev/null &&
+        GIT_INDEX_FILE="$tmp/index" git write-tree 2>/dev/null)"
+    rm -rf -- "$tmp"
+    printf '%s' "${tree:-unknown}"
+}
+
+ledger_begin() { # KIND
+    ledger_kind="$1"
+    ledger_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    ledger_tree="$(gated_tree)"
+}
+
+ledger_row() { # STEP RC SECONDS
+    local verdict=green class=- header=""
+    [[ -n "$ledger_kind" ]] || return 0
+    if [[ $2 -ne 0 ]]; then
+        verdict=red
+        class=unclassified
+    fi
+    [[ -s "$ledger" ]] || header=$'date\ttree\tkind\tstep\tseconds\tverdict\tclass\n'
+    if mkdir -p -- "${ledger%/*}" 2>/dev/null &&
+        printf '%s%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$header" "$ledger_date" "$ledger_tree" \
+            "$ledger_kind" "$1" "$3" "$verdict" "$class" 2>/dev/null >>"$ledger"; then
+        return 0
+    fi
+    printf 'ledger: cannot append to %s\n' "$ledger" >&2
+    ledger_ok=0
+}
+
 stage() {
-    local name="$1" start rc
+    local name="$1" start rc secs
     shift
     start="$(stamp)"
     printf '\n=== %s ===\n' "$name"
     ("$@")
     rc=$?
-    printf '%s rc=%d %ss\n' "$name" "$rc" "$(elapsed "$start")"
+    secs="$(elapsed "$start")"
+    printf '%s rc=%d %ss\n' "$name" "$rc" "$secs"
+    ledger_row "$name" "$rc" "$secs"
     [[ $rc -eq 0 ]] || failed+=("$name")
     return 0
 }
@@ -343,6 +389,7 @@ main() {
         shard="$2"
     fi
     start="$(stamp)"
+    if [[ -n "$shard" ]]; then ledger_begin "shard:$shard"; else ledger_begin gate; fi
     # An array, not a `while read` loop: stages keep the caller's stdin.
     mapfile -t rows <<<"$STAGES"
     for row in "${rows[@]}"; do
@@ -352,6 +399,7 @@ main() {
         fi
     done
     printf '\n=== gate%s ===\n' "${shard:+ (shard $shard)}"
+    [[ $ledger_ok -eq 1 ]] || failed+=(ledger)
     if [[ ${#failed[@]} -ne 0 ]]; then
         printf 'FAILED: %s\n' "${failed[*]}"
         printf 'gate rc=1 %ss\n' "$(elapsed "$start")"

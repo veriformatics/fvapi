@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Iteration gate: FAST_STAGES from tools/gate.sh — the independent checks in parallel, then the
 # incremental Lean build + the stages that consume it. Never the claim: the stages it skips (the
-# registry minus FAST_STAGES) run in tools/gate.sh alone and are printed. rc 0 iff every selected
-# stage returned 0. Run on vflab: tools/vflab-run bash tools/fast-gate.sh
+# registry minus FAST_STAGES) run in tools/gate.sh alone and are printed. Each stage's row lands in
+# the step ledger (kind `fast`). rc 0 iff every selected stage returned 0 + the ledger took every
+# row. Run on vflab: tools/vflab-run bash tools/fast-gate.sh
 set -uo pipefail
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -11,6 +12,7 @@ cd -- "$root" || exit 1
 source tools/gate.sh
 registry_ok || exit 2
 start="$(stamp)"
+ledger_begin fast
 
 sequential=(lean-build lean-test cli)
 parallel=()
@@ -39,11 +41,14 @@ done
 for i in "${!parallel[@]}"; do
     wait "${pids[$i]}"
     rc=$?
+    secs="$(cat "$log/${parallel[$i]}.time")"
     printf '\n=== %s ===\n' "${parallel[$i]}"
     cat "$log/${parallel[$i]}"
-    printf '%s rc=%d %ss\n' "${parallel[$i]}" "$rc" "$(cat "$log/${parallel[$i]}.time")"
+    printf '%s rc=%d %ss\n' "${parallel[$i]}" "$rc" "$secs"
+    ledger_row "${parallel[$i]}" "$rc" "$secs"
     [[ $rc -eq 0 ]] || failed+=("${parallel[$i]}")
 done
+[[ $ledger_ok -eq 1 ]] || failed+=(ledger)
 
 skipped="$(awk -v fast=" $FAST_STAGES " 'NF && index(fast, " " $1 " ") == 0 { printf "%s ", $1 }' <<<"$STAGES")"
 printf '\n=== fast gate ===\nselected: %s\nskipped (tools/gate.sh alone): %s\n' "$FAST_STAGES" "$skipped"
