@@ -23,6 +23,9 @@ MemorySwapMax=0
 TasksMax=4096
 IOReadBandwidthMax=$root_dev 250M
 IOWriteBandwidthMax=$root_dev 150M
+
+[Install]
+WantedBy=slices.target
 UNIT
 # The earlier nested name (a dash nests it under fvapi.slice, out of competition with system.slice).
 if [ -e /etc/systemd/system/fvapi-gate.slice ]; then
@@ -30,7 +33,9 @@ if [ -e /etc/systemd/system/fvapi-gate.slice ]; then
     sudo rm -f /etc/systemd/system/fvapi-gate.slice
 fi
 sudo systemctl daemon-reload
-sudo systemctl start fvapi_gate.slice
+# Enabled: active from boot, so tools/vflab-run (which refuses an inactive slice) survives reboots.
+sudo systemctl enable --now fvapi_gate.slice
+[ "$(systemctl is-enabled fvapi_gate.slice)" = enabled ] || { echo "fvapi_gate.slice not enabled" >&2; exit 1; }
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
     shellcheck jq rsync curl bubblewrap python3 gcc libc6-dev >/dev/null
 mkdir -p ~/gate/ws
