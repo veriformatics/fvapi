@@ -33,7 +33,7 @@ Notation: `f: T` required; `f?: T` optional = absent or a `T` — JSON `null` is
 Scalars:
 - `nat` = integer 0…2^53−1 · `pos` = 1…2^53−1 · `ms` = `nat`, Unix time in milliseconds.
 - `ident` = 1–128 ASCII bytes: one byte = `[a-z0-9]`; longer = first + last byte `[a-z0-9]`, every byte between `[a-z0-9._-]` (entry ids, spec ids, entry kinds, feature names).
-- `sha256` = `[0-9a-f]{64}` · `profile_id` = `"sha256:"` + sha256 · `digest` = tag `":"` sha256, tag = `[a-z0-9]{1,16}`; known tag now: `sd1` (statement digest v1, `fvapi digest`).
+- `sha256` = `[0-9a-f]{64}` · `profile_id` = `"sha256:"` + sha256 · `digest` = tag `":"` sha256, tag = `[a-z0-9]{1,16}`; known tag now: `sd1` (statement digest v1 = `docs/digest-sd1.md`, computed caller-side by `fvapi digest`); a digest is a routing key: equal digests never imply compatible theorems.
 - `token` = `[A-Za-z0-9._~-]{1,128}` (row, answer + caller ids, idempotency keys; opaque) · `cursor` = `[A-Za-z0-9_-]{1,1024}` (opaque).
 - `label` = printable ASCII 0x21–0x7E, 1–256 bytes · `spdx` = printable ASCII 0x20–0x7E, 1–256 bytes, no leading or trailing space.
 - `text[a,b]` = any string of a…b bytes · `source` = 1–65,536 bytes, no U+0000, ≥ 1 scalar other than space, tab, LF, CR (Lean source) · `lean_name` = 1–1,024 bytes, no U+0000–U+001F or U+007F · `abs_path` = 1–4,096 bytes, first byte `/`, no U+0000 (lexical types: Lean elaboration + safe path resolution belong to their consumers) · `any` = a J1 value, `null` included, whose placement keeps the complete message `Valid`.
