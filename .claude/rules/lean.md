@@ -6,7 +6,7 @@ paths:
 # Lean 4.35 pitfalls (this toolchain, this repo)
 
 - Structure literals: every field at or right of the first field's column, else `unexpected identifier; expected '}'` ⇒ write one field per line after `{ x with` / `{`.
-- `section`, `scoped`, `local` = keywords: never variable/field/hypothesis names; a blanket rename must spare JSON string keys (`"section"`).
+- `section`, `scoped`, `local`, `at` = keywords: never variable/field/hypothesis names; a blanket rename must spare JSON string keys (`"section"`).
 - Inside `Fvapi.Store`, bare `decide` resolves to the store decision function ⇒ `Decidable.decide (p)`.
 - `if` on a mixed Bool/Prop condition can fail Decidable synthesis ⇒ write it with Bool operators (`&&`, `||`, `!`, `!=`); membership in a Bool context ⇒ `xs.contains x`.
 - Production `if` guards do not reduce reliably under `rw [if_pos]`/`split` (`Decidable` is a structure) ⇒ `rcases` the head + `cases` the stream, then `simp_all [def, Bind.bind, Except.bind, throw, throwThe, MonadExceptOf.throw]`.
@@ -18,3 +18,9 @@ paths:
 - Key lookups on code-built JSON objects: rewrite with a stable-sort lookup lemma (`StartupProject.member_object`) instead of unfolding `Value.object`/`sortMembers` (an 11-member `mergeSort` does not simp).
 - `let some x := e | alt` is do-notation only; a helper extracted from a `do` block needs its own `do`. TreeMap `get?` vs `[k]?`: bridge with `Std.TreeMap.get?_eq_getElem?`.
 - `rcases h : f _ … with …` leaves `_` as an unresolved metavariable that never matches the goal ⇒ spell the argument or `split at` the unfolded bind chain.
+- `decide` needs a closed goal with a `Decidable` instance: free variables → `show` the closed literal form first; spec predicates without an instance (spec `present`) → `show` the native Bool form, then `rw [decide_eq_false_iff_not]`. `native_decide` adds an axiom outside {propext, Classical.choice, Quot.sound} ⇒ never.
+- `@[simp] presentExact` rewrites native `present` into spec `present` inside any `simp` ⇒ a later `decide` meets the instance-less spec form.
+- A production lambda that a proof cannot restate → state the lemma over an arbitrary predicate and `rw [lemma]`: `rw` unifies the goal's own lambda (precedent `SnapshotCollections.find_index`).
+- Inside `case X =>`, a nested `cases … with` puts each `| ctor =>` arm on its own line, indented past `case`.
+- Private structure fields opened with `open private` → apply the full name (`Fvapi.Store.CandidateData.objects data`); dot notation `data.objects` fails.
+- Formal premises that stay visible by ruling (E-A28 `Sha256Output32`, the validated node caller) are theorem arguments, never axioms or `sorry`.
