@@ -24,3 +24,8 @@ paths:
 - Inside `case X =>`, a nested `cases … with` puts each `| ctor =>` arm on its own line, indented past `case`.
 - Private structure fields opened with `open private` → apply the full name (`Fvapi.Store.CandidateData.objects data`); dot notation `data.objects` fails.
 - Formal premises that stay visible by ruling (E-A28 `Sha256Output32`, the validated node caller) are theorem arguments, never axioms or `sorry`.
+- A do-block `let x := e` becomes `have x := e`: the term `e` is hidden from `cases e`/`rw` until `simp only [f]` (zeta) exposes it; do join points (`have __do_jp`) block `split` the same way ⇒ `simp only [f] at h`, then `split at h`.
+- `if_pos`/`if_neg` are deprecated (errors under warningAsError) ⇒ state the reduced form by defeq (`have h' : … := h`) or use `ite_eq_left`/`ite_eq_right`.
+- `cases h` on `some a = some b` (both locals) may eliminate the variable you need ⇒ `have e := Option.some.inj h; subst e` (eliminates the right-hand variable).
+- `cases` takes comma-separated targets: inside `⟨fun x => by cases x, …⟩` the comma is parsed as a second target ⇒ parenthesize every `fun … => by …` field.
+- `cases h` on an equation between non-variable constructor arguments fails ("Dependent elimination failed") ⇒ `simp only [….injEq] at h` to extract the field equation.
