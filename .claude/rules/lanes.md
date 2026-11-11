@@ -1,0 +1,3 @@
+# MAIN lanes (adapts CLAUDE.md `Execution` → Git: "Commits land on the branch the session starts on")
+
+- MAIN's in-flight unit lanes keep taking its commits until their unit closes: `wt/main-u4a-p` (U4A; `wt/main-u4a` = blind/witness runner, `wt/main-u4a-w4` = build mirror) + `wt/main-p7b` (U2 P7b). Their checkpoints have not passed the full gate, which runs once per unit on its landing commit ⇒ moving them onto `main` mid-unit would land ungated work. Each lands at the close its `Tasks` row names by `git merge --squash` onto `main`, never as an exact tree (that would revert what `main` gained since the lane's base, e.g. a template refresh). Every later unit commits on `main`. This rule retires once both units have landed.
