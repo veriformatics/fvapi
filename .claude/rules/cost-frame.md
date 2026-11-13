@@ -56,8 +56,11 @@ paths:
   start + first release, replayed per path), token span (no-work, scalar results, `projLike`, noAlloc), own (bytes
   parameter), HOLD span (twin over the recorded extent), atomic child (the callee's bound; caller work outside it =
   no-work alone), cell (a 16 B Except wrapper), tail (respond call + wrapper | a child's error wrapper = the frame's
-  `response`), EMPTY; frame decls reached only from declared sites over E1's closure; the map's r kinds + supplying
-  fields = `C8Kinds.lean` (finite conformance over the pinned CostFrame bytes, not a parametric proof).
+  `response`), EMPTY; each step's kind head fits its class (a C1-backed r sits on its partition row); a loop exit =
+  an EmitC tail call (a self `fap`, `ret` of it next); the finish callback = the closed initializer's returned pap →
+  its forwarding shim → `_lam_0` (exact straight-line shapes); frame decls reached only from declared sites over E1's
+  closure; the map's r kinds + supplying fields = `C8Kinds.lean` (closeQueue/n = n − 1 iterate passes + settle, one
+  pass kind for every n; finite conformance over the pinned CostFrame bytes, not a parametric proof).
 - Not covered: twins + own parameters instantiated over the recorded extents (assembly + C8b), native realization incl.
   closed-term first-read initialization (C8b), excluded arms' own bounds (their continuations are walked for frame
   calls alone), T5's multi-path child adapter.
@@ -65,8 +68,9 @@ paths:
   wrapper pins C1's part (sha of the stripped file) + its old modes' outputs. A map change = a map repair only where
   CostFrame already covers the IR path; a path CostFrame lacks = a C8a-1 fix (CostFrame + verify + statement
   re-review) in its own commit, never a map widening.
-- Firing record (lane 01395be, driver 192774d9): 25 plants = registered cause sets (unassigned, freshleaf, childwork,
-  biglit, tailwork → unassigned; reorder, extra → order; crossed, moved, replay → boundary; loop; target, unmapped →
-  unmapped; missing; overflow; cycle; unsupported; provenance; omitted, twocells → undeclared; ambiguous; exitr → exit
-  r + costframe; kind → costframe; control, smalllit → none). Run: store-control gate stage at U4A close (beside
-  `c1-roots.py`); until then a run per change, recorded in the commit body.
+- Firing record (lane 061166a, driver 192774d9): 34 plants = registered cause sets (unassigned, freshleaf, childwork,
+  biglit, tailwork, subleaf → unassigned; reorder, extra → order; crossed, moved, replay (the compare input) →
+  boundary; loop, nontail, selfpap → loop; arity, target2, wrapfinish, shimret, unmapped → unmapped; missing;
+  overflow; cycle; unsupported; provenance; omitted, twocells, memo → undeclared; ambiguous; exitr → exit r +
+  costframe; kind, settlekind, mfhold → costframe; control, smalllit → none). Run: store-control gate stage at U4A
+  close (beside `c1-roots.py`); until then a run per change, recorded in the commit body.
