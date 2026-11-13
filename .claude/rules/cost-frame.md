@@ -5,6 +5,10 @@ paths:
   - "Fvapi/Store/DevRuntime.lean"
   - "Fvapi/Store/DevModel.lean"
   - "Fvapi/Store/Queue.lean"
+  - "tests/store/model/C1Roots.lean"
+  - "tests/store/model/C8Kinds.lean"
+  - "tests/store/model/c8-frames.py"
+  - "tests/store/model/c8-frames.recorded"
 ---
 
 # Command frames (E-A40 C8a-1)
@@ -28,9 +32,9 @@ paths:
   `frameBound_mono`, `loopBound_mono`, per-frame `*_mono` (same shape; not admission monotonicity); T7 `drain_carry` =
   μ's queue form at the synthesized header `drainHeader` (RHS Σ certified ticket μ, never Σ `retained`); closed checks
   `modelBatch_released` 122, `loop_rebased` 148 < `loop_flat` 172, `cancelled_token` +16.
-- Limits: arithmetic over declared phases, never a native-memory claim (native = C8b). The path lists bind to the code
-  by review alone (contract `.scratch/u4/w3/c8-contract.md`, astra statement review) until C8a-2's compiled-IR coverage
-  map passes (every instruction on every path of each frame function assigned to a declared phase or own interval).
+- Limits: arithmetic over declared phases, never a native-memory claim (native = C8b). The path lists bind to the
+  compiled driver mechanically through C8a-2 (below); T5's multi-path / early-exit child at `frameBound 0` stays owed to
+  assembly.
   Premises + parameters stay HOLD, never closed here: `Released` (each loop iteration enters within base + the previous
   exit retention), `hcons` (`fittingPrefix` builds one cell per selected ticket), every c/p + HOLD r (writers, program
   footprint, forecast p, analysis evaluation, closeQueue's drains, own-event twins), μ's `hadm`/`Agree`/`hhead`/
@@ -41,5 +45,28 @@ paths:
   Classical.choice, Quot.sound}, the 41 names + earlier cost names as required hits, a planted axiom must be reported).
 - Rerun: an edit to either CostFrame file, `CostRegion`, `CostRoots`, `CostCarry`, or a frame function (`DevRuntime`
   modelBatch, modelDrainPrefix, batch, apply, enqueue, drain, closeQueue, closeStore, dispatch, dispatchOperation;
-  `DevModel` continue; `Queue.fittingPrefix`) → re-check the path table against the code (C8a-2's check once it
-  lands) + rebuild + the axiom audit, in the same commit.
+  `DevModel` continue; `Queue.fittingPrefix`) → `tools/vflab-run python3 -I tests/store/model/c8-frames.py` rc 0 +
+  rebuild + the axiom audit, in the same commit. A changed RECORDED line = `--record` + its review in that commit; a
+  CostFrame byte change = statement re-review, then re-pin `COSTFRAME_SHA`.
+
+# C8a-2 coverage map (`C1Roots.lean --frames`, wrapper `c8-frames.py`, criterion `.scratch/u4/w3/c8a2-criterion.md`)
+
+- Green = every IR path of each frame function (+ `dispatch`/`dispatchOperation` preludes, the finish closure) is one
+  declared template exit; each instruction sits in a step with a named supplier: C1 partition (r by C1 at the same
+  start + first release, replayed per path), token span (no-work, scalar results, `projLike`, noAlloc), own (bytes
+  parameter), HOLD span (twin over the recorded extent), atomic child (the callee's bound; caller work outside it =
+  no-work alone), cell (a 16 B Except wrapper), tail (respond call + wrapper | a child's error wrapper = the frame's
+  `response`), EMPTY; frame decls reached only from declared sites over E1's closure; the map's r kinds + supplying
+  fields = `C8Kinds.lean` (finite conformance over the pinned CostFrame bytes, not a parametric proof).
+- Not covered: twins + own parameters instantiated over the recorded extents (assembly + C8b), native realization incl.
+  closed-term first-read initialization (C8b), excluded arms' own bounds (their continuations are walked for frame
+  calls alone), T5's multi-path child adapter.
+- Edits: C8a-2 code lives only in the `-- C8a-2 BEGIN/END` + `-- C8a-2 main BEGIN/END` blocks of `C1Roots.lean`; the
+  wrapper pins C1's part (sha of the stripped file) + its old modes' outputs. A map change = a map repair only where
+  CostFrame already covers the IR path; a path CostFrame lacks = a C8a-1 fix (CostFrame + verify + statement
+  re-review) in its own commit, never a map widening.
+- Firing record (lane 01395be, driver 192774d9): 25 plants = registered cause sets (unassigned, freshleaf, childwork,
+  biglit, tailwork → unassigned; reorder, extra → order; crossed, moved, replay → boundary; loop; target, unmapped →
+  unmapped; missing; overflow; cycle; unsupported; provenance; omitted, twocells → undeclared; ambiguous; exitr → exit
+  r + costframe; kind → costframe; control, smalllit → none). Run: store-control gate stage at U4A close (beside
+  `c1-roots.py`); until then a run per change, recorded in the commit body.
