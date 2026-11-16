@@ -4,7 +4,10 @@ HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$HERE/../.." && pwd)
 COMMON=$(git -C "$ROOT" rev-parse --path-format=absolute --git-common-dir)
 PRIMARY=$(dirname "$COMMON")
-TARGET=${FVAPI_TARGET:-developer@192.168.40.241}
+TARGET=${FVAPI_TARGET:-vflab}
+# The SSH alias selects the login; its HostName also selects the health-check URL.
+HOST=$(ssh -G "$TARGET" | awk '$1 == "hostname" { host=$2 } END { print host }')
+[[ -n "$HOST" ]] || { printf 'fvapi: SSH target has no hostname\n' >&2; exit 2; }
 KNOWN_HOSTS=${FVAPI_KNOWN_HOSTS:-$PRIMARY/ops/vflab/vflab_known_hosts}
 MANIFEST=${FVAPI_SEED:-$PRIMARY/prototype/fvapi/seed.local.json}
 SSH=(ssh -o BatchMode=yes -o UserKnownHostsFile="$KNOWN_HOSTS" "$TARGET")
@@ -90,7 +93,6 @@ if command -v ufw >/dev/null && sudo ufw status | grep -q '^Status: active'; the
     sudo ufw allow 8441/tcp
 fi
 REMOTE
-HOST=${TARGET#*@}
 deadline=$((SECONDS + 60))
 until curl --connect-timeout 1 --max-time 2 -sf "http://$HOST:8441/v0/health"; do
     if ((SECONDS >= deadline)); then

@@ -31,16 +31,28 @@ memory="${FVAPI_VFLAB_MEMORY:-infinity}"
 slice=fvapi_gate.slice
 # The id reaches a remote command line: anything outside [A-Za-z0-9._-] → _.
 id="$(basename -- "$root" | tr -c 'A-Za-z0-9._\n-' _)-$(printf '%s' "$root" | sha256sum | cut -c1-8)"
-home=/home/developer
-ws="$home/gate/ws/$id"
 ssh_opts=(-o BatchMode=yes -o ServerAliveInterval=15 -o ServerAliveCountMax=4)
 
 fail_sync() {
-    printf 'vflab-run: %s (workspace %s:%s)\n' "$1" "$host" "$ws" >&2
+    printf 'vflab-run: %s (workspace %s:%s)\n' "$1" "$host" "${ws:-unresolved}" >&2
     exit 125
 }
 
-ssh "${ssh_opts[@]}" "$host" "[ -d '$home/gate/repo.git' ] || git init -q --bare '$home/gate/repo.git'
+quote() { printf '%q ' "$@"; }
+
+# Resolve the SSH account before uploading files or starting a privileged unit.
+# SSH's status must survive command substitution; mapfile alone would hide it.
+identity=$(ssh "${ssh_opts[@]}" "$host" 'set -eu; id -u; id -g; printf "%s\n" "$HOME"') ||
+    fail_sync 'cannot resolve the SSH account'
+mapfile -t remote_identity <<<"$identity"
+[[ ${#remote_identity[@]} -eq 3 ]] || fail_sync 'invalid SSH account response'
+remote_uid=${remote_identity[0]} remote_gid=${remote_identity[1]} remote_home=${remote_identity[2]}
+[[ $remote_uid =~ ^[0-9]+$ && $remote_gid =~ ^[0-9]+$ && $remote_home == /* ]] ||
+    fail_sync 'invalid SSH account response'
+ws="$remote_home/gate/ws/$id"
+
+repository=$(quote "$remote_home/gate/repo.git")
+ssh "${ssh_opts[@]}" "$host" "[ -d $repository ] || git init -q --bare $repository
     [ -e /etc/systemd/system/$slice ] && systemctl is-active --quiet $slice" ||
     fail_sync "bare repository or $slice missing (run tools/bootstrap-vflab.sh)"
 head="$(git -C "$root" rev-parse HEAD)" || fail_sync 'no HEAD commit'
@@ -73,13 +85,12 @@ rm -rf "$ws/.incoming"
 cd "$ws" || fail "workspace missing"
 "$@" </dev/null'
 
-quote() { printf '%q ' "$@"; }
-remote="sudo systemd-run --quiet --uid=developer --gid=developer --slice=$slice \
+remote="sudo systemd-run --quiet --uid=$remote_uid --gid=$remote_gid --slice=$slice \
     --wait --pipe --collect --expand-environment=no --property=Type=oneshot \
     --property=TimeoutStartSec=$timeout --property=TimeoutStopSec=30 \
     --property=MemoryMax=$memory --property=IgnoreSIGPIPE=no \
-    --setenv=HOME=$home \
-    --setenv=PATH=$home/.elan/bin:$ws/.tools/bin:$home/.local/node/bin:/usr/local/bin:/usr/bin:/bin \
+    $(quote "--setenv=HOME=$remote_home" \
+        "--setenv=PATH=$remote_home/.elan/bin:$ws/.tools/bin:$remote_home/.local/node/bin:/usr/local/bin:/usr/bin:/bin") \
     -- $(quote /usr/bin/flock "$ws.lock" /bin/bash -c "$inner" vflab-run "$ws" "$root" \
         "refs/heads/ws/$id" "$head" "$@")"
 
@@ -88,7 +99,10 @@ remote="sudo systemd-run --quiet --uid=developer --gid=developer --slice=$slice 
 fifo="$(mktemp -d)"
 trap 'rm -rf "$fifo"' EXIT
 mkfifo "$fifo/out" "$fifo/err"
-map="s#$ws#$root#g"
+# Both the remote pattern and local replacement are literal filesystem paths.
+pattern=$(printf '%s' "$ws" | sed 's/[][\\.^$*#]/\\&/g') || fail_sync 'output mapping failed'
+replacement=$(printf '%s' "$root" | sed 's/[\\&#]/\\&/g') || fail_sync 'output mapping failed'
+map="s#$pattern#$replacement#g"
 sed -u "$map" <"$fifo/out" &
 out_pid=$!
 sed -u "$map" <"$fifo/err" >&2 &
