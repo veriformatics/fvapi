@@ -7,7 +7,7 @@ package fvapi where
     "An API for formal verification: library lookups, bundles the caller re-checks, " ++
     "proven checkers."
   keywords := #["formal-verification", "lean", "api"]
-  license := "Apache-2.0"
+  license := "Apache-2.0 WITH LLVM-exception"
   licenseFiles := #["LICENSE"]
   testDriver := "«fvapi-tests»"
   leanOptions := #[⟨`autoImplicit, false⟩, ⟨`relaxedAutoImplicit, false⟩, ⟨`warningAsError, true⟩]

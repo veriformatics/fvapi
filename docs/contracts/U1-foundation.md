@@ -25,7 +25,7 @@ Identity = numeric UID + primary GID + absolute HOME from the SSH login. Probe f
 
 ## Skeleton (data, except K2's exit mapping = kernel)
 
-- K1 Lake package `fvapi` (version in `Fvapi/Version.lean` = `lakefile.lean`), `lean-toolchain` = `leanprover/lean4:v4.35.0`, `leanOptions` autoImplicit off + warningAsError on, license Apache-2.0 with `LICENSE` (canonical text) as its licence file. Probes show a planted implicit variable + a planted warning each rejected, and each compiling once its owning option is removed.
+- K1 Lake package `fvapi` (version in `Fvapi/Version.lean` = `lakefile.lean`), `lean-toolchain` = `leanprover/lean4:v4.35.0`, `leanOptions` autoImplicit off + warningAsError on, license `Apache-2.0 WITH LLVM-exception` with `LICENSE` (canonical Apache 2.0 text + the LLVM Exceptions block) as its licence file. Probes show a planted implicit variable + a planted warning each rejected, and each compiling once its owning option is removed.
 - K2 `fvapi --version` → exactly `fvapi <version>` + LF on stdout, rc 0; `fvapi help` / `--help` → usage naming `--version` + `help` on stdout, rc 0; no argument, an unknown command or an extra argument → usage on stderr, rc 2.
 - K3 `lake test` runs the driver (per-case PASS/FAIL, the slowest case, rc = failures); `cli` drives the built binary through every K2 case, asserting rc, the stream used and the other stream empty.
 
