@@ -63,10 +63,10 @@ Historical machine-specific identity/path labels are redacted; scientific source
 - [ ] U7 Server core: Std.Http batched receive, core routes, content-free events, admission-cap experiment (shipping condition), retention run, worker lifecycle; aggregate request-preparation admission + lifetime bound with charged transfer into U4 ownership — a connection/body cap alone is insufficient (the production analogue of U4's uncapped dev-fixture staging scope, steward A46.S); HTTP receive fuzz target (`.claude/rules/tests.md`)
 - [ ] U8 Bundles: prebuilt deterministic archives + budgets, manifest + export targets + terms, `/v1/bundles`, delivery receipts, path-safe extraction + its fuzz target (`.claude/rules/tests.md`)
 - [ ] U9 Client core + re-check: `Fvapi.Client`, comparator + kernel policy, verdict proof, canaries, `verify`, replay-floor ablation + one-call clock
-- [ ] U10 Check answers: caller-named checker, exact bytes, sandboxed run, result fields, deadlines + fallback, `/v1/check`
+- [ ] U10 Check answers: caller-named checker, exact bytes, sandboxed run, result fields, deadlines + fallback, `/v1/check`; trust-route regression cases (kernel certificate, compiled fallback, the route actually taken, failure — each with its advertised label) + axiom pins that fail when `Lean.ofReduceBool` or a `native_decide` auxiliary enters a kernel-certificate proof
 - [ ] U11 Certificate research (time box: ≤ 3 representation attempts on the 256 B pair, then the 1 KiB milestone)
-- [ ] U12 Admission + seeds: `admin admit` (kernels alone vs the recorded challenge), challenge resolution, receipts, the 5 entries re-admitted
-- [ ] U13 Rows: requests, miss coalescing, proven state machine, claim expiry, paged change feed + `rows sync`
+- [ ] U12 Admission + seeds: `admin admit` (kernels alone vs the recorded challenge), challenge resolution, receipts, the 5 entries re-admitted; Lean elaboration executes code ⇒ caller-supplied statement text (challenges, rows) elaborates only offline in a sandbox (no network, no secrets)
+- [ ] U13 Rows: requests, miss coalescing, proven state machine, claim expiry, paged change feed + `rows sync` (its cursor advances only after the local mirror durably holds the range: an interrupted sync replays, never skips)
 - [ ] U14 CLI + MCP: full surface, outcome + exit mapping, `fvapi mcp`, `/v1/answers`
 - [ ] U15 Deployment: Caddy TLS + persistent CA, units, datasets, deploy + rollback over the same store, health + live-host check, local re-check image; service slices (fvapi + fvdep: one each, equal weights, memory limits) + the service reservation sized from both services' measured load (the gate slice gets the rest)
 - [ ] U16 Caller library + contract tests: fva + fvTrace flows over HTTPS
