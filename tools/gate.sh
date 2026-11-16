@@ -180,7 +180,7 @@ cli() {
 }
 
 # Each purpose-built check passes on a clean copy, fails on its planted input, passes restored.
-probes() { bash tools/gate-probe.sh --base; }
+probes() { bash tools/gate-probe.sh --base && python3 tools/test-vflab-identity.py; }
 
 # Capsule-dependent probes stay on the audit CI shard; no argument runs every probe.
 audit_probes() { bash tools/gate-probe.sh --audit; }
