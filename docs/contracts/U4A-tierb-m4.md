@@ -83,11 +83,11 @@ the composition theorem's term list names it with its bound).
 | term | expression | where | owner | obligation |
 |---|---|---|---|---|
 | T-out | 24·\|out\| per output list cell (+ 16 per `some`) | reply/page projections alone: read pages, snapshot/export pages, reply bodies built from a W5 result; a W5 result used as scratch (a check's or comparison's input, e.g. the `.row` meaning's `attemptValue` map) is never T-out: it carries its own §1 row or stays a G3 finding (C5) | the operation's reply/page byte limit (E-A19) | EA40-OUT |
-| T-drop | 24·(N − k) result copy | `Hist.drop` callers | the caller's cost term; `refreshViews` tail → K3 (T1) | EA40-DROP |
+| T-drop | 24·(N − k) result copy | `Hist.drop` callers | the caller's cost term: each actual suffix caller, both seals' NEW authority suffix included; K3 builds no OLD tail (§9 R10) | EA40-DROP |
 | T-ofList | 24·N | List → Hist at startup, recover, import (`fromState`, decoders) | startup/import bound | EA40-STARTUP |
 | T-mem | ≤ 64 B per call, N-independent | Decidable `∈` / `∀ x ∈` / `∃ x ∈` over `Hist` | the reader's flat constant | (inside each reader cell) |
 | T-K2 | checkpoint rebuild on a threshold crossing | `buildCheckpoint` | store-walk K2 contract | EA40-K2 |
-| T-K3 | one print per NEW authority event per batch | `refreshViews` after K3 | K3 (T1) | EA40-K3 |
+| T-K3 | one sizing print per NEW authority event per seal invocation (model forecast + real = 2; composed once with EA40-FORECAST) | `refreshViews` after K3: its once-per-invocation NEW sizing (§9 R10) | K3 (T1, within a NEW-width stratum) | EA40-K3 |
 | T-walk | seal closure walk + decode memo | `sealBatchMemo` | store-walk K1 + K13′ contracts | EA40-WALK |
 | T-forecast | the model's forecast pass (a second evaluation) | `modelBatch` | E-A41 forecast | EA40-FORECAST |
 | T-queue | retained tickets + the drain's batch | enqueue/drain | C3 drain bridge + `drain_charge_le_queue` | EA40-QUEUE |
@@ -128,10 +128,10 @@ Setup batches ≤ 1,024 commands; setup ≤ 600 s (preflight per cell; over = IN
 | f4o (N1 outer independence) | f4w at A = 64 + P × request replays of t's key | + P audits + P authority | as f4w | as f4w | P ∈ {0, 1024} | flat in P | P-T/P-R on authority | as f1 |
 | f4r (N3 reachable refusal) | f4w at the grid's A | as f4w | [update R_t (expected revision A+1) + fact (number A+3, version 1, event A+1, active, claimed 0, expires 100): number gap ⇒ `AttemptEvolution` fails inside `commandStructure` ⇒ `.invalid`, pre-command state kept (`Apply.lean:346–347`, `:389–408`); update R_t (expected revision A+1: not A+2) + fact (number A+1, version 1, event A+1, active, claimed 0, expires 100) @1] → error invalid, updated | s = n, all in E: writer `updateRow` (2: the accepted update's two calls; the refused command builds none, §8 R8), reader `latestAttempt` (E ≥ 2), `attemptCount` (E ≥ 2), the `Row.Shape` decision (E ≥ 1: `UpdateStructure` short-circuits at `AttemptAppend` for the refused command, `Commands.lean:158–166`), alloc the `OpenBindingPreserved` decision (E ≥ 2) | A ∈ {8, 64} (model, §8 R1; `-pure`: {8, 512}) | flat in A; replies = the frozen `invalid` error, then success | nested P-R at the refusal's reader (`latestAttempt`) | as f1 |
 | N6-A (T-rowcheck + T-headcheck A-sweep; recorded at step 0, graded by the store-walk N6 contract, never a Tier B pass) | = f4w | = f4w | f4w's batch | SUB roles: `meaning` (hosts the `.row` branch: `historyItems?` + `attemptValue` map + `relatedLists`; F/R/E per the schedule: f4w is all E ⇒ E ≥ 2), `historyHead_x3f` (prepare's old attempt head + construction; E ≥ 2) | A ∈ {8, 64} at A_max 520 (model, §8 R1; `-pure`: {8, 64, 512}) | stock + S2 arm: growing in A (the recorded red; predicted ≥ 24·A per call from `historyItems?` + the `attemptValue` objects); after N6's change: its contract's grade | N6's own plants (its contract) | N6 contract (store-walk proposal) |
-| T1 (K3; F3) | f1 H with config tail_operations = 1,024, tail_bytes = MAX (genesis checkpoint covers 0 ⇒ uncovered tail T = H) | as f1 | f1's measured batch | `refreshViews` (2 = forecast + real seal; the whole per-kind loop: guard, suffix decision, sizing, counter update), `buildCheckpoint` (0 here) | T ∈ {100, 400, 1000} | flat in T (only NEW events sized) | (i) OLD suffix plant (materialize the full tail: Σ 24·T); (ii) OLD re-encode plant (size every tail event: slope ∝ T); (iii) wrong-running-total plant (arm variant storing `bytes + 1` as a kind's running total) → rejected by `FvapiProof.Store.TierB.viewsTailExact` failing to build (c2-check build step rc 1) + the planted store's reopen (close → open) failing startup's view comparison (`Startup.lean:270–277` ⇒ `.corrupt .graph`) ⇒ cell exit 1; stock red (attr3: 192.1 MB at a near-limit tail) | planned `FvapiProof.Store.TierB.viewsTailExact` (each kind: `view.tailBytes = tailBytes enc (s.authority.toList.drop view.covered)` ∧ `view.tailCount = s.counters.operation − view.covered`) + `refreshViews_preserves` + its consumption by `FvapiProof.Store.StartupExact.startup_exact` (views) |
-| T1-op (threshold, operations) | H = 512 setup [450, 62] vs [449, 63], tail_operations = 64, tail_bytes = MAX | tail 62 / 63 before | f1's batch (+2 ⇒ 64 = no checkpoint / 65 = checkpoint) | `refreshViews` (2), `buildCheckpoint` (0 / 16: one per index kind = 8 per checkpointing seal pass, §8 R8) | the 2 setups | `refreshViews` − `buildCheckpoint` suba identical across the 2 setups; `buildCheckpoint` = T-K2, recorded | plants (i)(ii) | as T1 |
+| T1 (K3; F3) | f1 H with config tail_operations = 1,024, tail_bytes = MAX (genesis checkpoint covers 0 ⇒ uncovered tail T = H) | as f1 | f1's measured batch | `refreshViews` (2 = forecast + real seal; semantic extent, §9 R10: the once-per-invocation NEW sizing + per kind: covered guard, running total, threshold decision, view update), `buildCheckpoint` (0 here) | T ∈ {100, 400, 900} + {1000, 1010, 1020} (fixed-NEW-width strata, §9 R10) | flat in T within each stratum, never compared across strata (only NEW events sized) | (i) OLD suffix plant (materialize the full tail: Σ 24·T) + (ii) OLD re-encode plant (size every tail event: slope ∝ T), each placed before `refreshKind`'s branch test (§9 R11 controls); (iii) wrong-running-total plant (arm variant storing `bytes + 1` as a kind's running total) → rejected by `FvapiProof.Store.TierB.viewsTailExact` failing to build (c2-check build step rc 1) + the planted store's reopen (close → open) failing startup's view comparison (`Startup.lean:270–277` ⇒ `.corrupt .graph`) ⇒ cell exit 1; stock red (attr3: 192.1 MB at a near-limit tail; both strata red, §9 R10) | planned `FvapiProof.Store.TierB.viewsTailExact` (each kind: `view.tailBytes = tailBytes enc (s.authority.toList.drop view.covered)` ∧ `view.tailCount = s.counters.operation − view.covered`) + `refreshViews_preserves` + its consumption by `FvapiProof.Store.StartupExact.startup_exact` (views) |
+| T1-op (threshold, operations; §9 R11) | tail_operations = 64, tail_bytes = MAX; setup [H − t, t] (the first batch checkpoints ⇒ `covered` = H − t > 0; the second leaves tail t), H ∈ {256, 512}; cohort N (no checkpoint) t ∈ {32, 62}; cohort C (checkpoint) t ∈ {63, 64}; + the original pair H = 512 [450, 62] / [449, 63] | tail t before | f1's batch (+2 ⇒ t + 2 ≤ 64 = no checkpoint / > 64 = checkpoint) | `refreshViews` (2), `buildCheckpoint` (N: 0; C: 16 = one per index kind per checkpointing seal pass, §8 R8) | the 4 cells of each cohort; the original pair | `refreshViews` − `buildCheckpoint` suba exactly flat within each cohort across H and t (no cross-cohort subtraction, no slack); the original pair = the branch-boundary semantic + reopen check, its cost contrast recorded (diagnostic); `buildCheckpoint` = T-K2, recorded | §9 R11 controls: (i) + (ii) before the branch test (t variation rejects them), a checkpoint-path-only plant, a whole-history plant (H variation rejects it); stock: cohort N red (7,055,552 / 12,787,712 at t 32 / 62, flat in H), cohort C green (1,120 ×4) | as T1 |
 | T1-by (threshold, bytes) | per grid point H: f1 H setup, tail_operations = 1,024. Count session: configure tail_bytes = MAX → init → setup → b₀(H) = the views' tail bytes after setup (export: generation record `views`) → f1's batch → e(H) = tail bytes after − b₀(H) (no checkpoint asserted) → close. Graded sessions: configure tail_bytes = b₀(H) + ⌈e(H)/2⌉ BEFORE init (configure is invalid while open, `DevRuntime.lean:87`) → init → the same setup (setup digests = the count session's) → f1's batch. b₀ + e from the stock count session, asserted equal in the arm's count session (C1: byte-identical formats) | as f1 | f1's batch (crosses the byte limit ⇒ checkpoint in both seal passes) | as T1-op | H ∈ {128, 512} | `refreshViews` − `buildCheckpoint` flat in H | plants (i)(ii)(iii) | as T1 |
-| T1-err (refreshViews error exit) | RP over a genuine root, driver-unreachable (import → open runs startup's `covered ≤ operation` check first, `Startup.lean:272`): `startup` over a driver-exported f1 H store, its `.entries` view tampered alone to `covered` = the next state's operation + 1 (§8 R3) | — | `sealBatchMemo` on a one-event state → `.error (.corrupt .graph)` (`Seal.lean:112`; the four `appendItems` run first on NEW items alone, `:223–234`) | region = the private `refreshViews` symbol (census-resolved) | H ∈ {10², 10³} | region alloc identical across H (the throw precedes `drop` + `tailBytes` for that kind); reply = the exact error | plant: the covered check moved after the kind's tail sizing ⇒ slope ∝ H → red | none (error exit of unchanged code; G3 confirms no OLD access before the throw) |
+| T1-err (refreshViews error exit) | RP over a genuine root, driver-unreachable (import → open runs startup's `covered ≤ operation` check first, `Startup.lean:272`): `startup` over a driver-exported f1 H store, its `.entries` view tampered alone to `covered` = the next state's operation + 1 (§8 R3) | — | `sealBatchMemo` on a one-event state → `.error (.corrupt .graph)` (`Seal.lean:112`; the four `appendItems` run first on NEW items alone, `:223–234`) | region = the private `refreshViews` symbol (census-resolved) | H ∈ {10², 900} + {1000, 1020} (fixed-NEW-width strata, §9 R10) | region alloc identical across H within each stratum (§9 R10: the once-per-seal NEW sizing precedes the first kind's covered guard, which throws before that kind's running-total / checkpoint / update work); reply = the exact error | plant (§9 R10): realized pre-guard OLD work (an OLD-spine materialization or OLD re-encode before the guard, realized in the emitted C, `.corrupt .graph` kept, its length/count predeclared) → nonzero exit; the guard-reorder plant is retired (its suffix is empty) | `refreshKind_guard` + `refreshViews_guard` (adapted to the NEW-sizing signature); G3 confirms no OLD-sized allocation before the throw |
 | T2 (F4) | f2 H | as f2 | f2's batch | `overflowing` (F2 R2) | H ∈ {100, 200, 300} | every SUB birth inside `overflowing` = 0 at each CHECK (a superset of the GMP/libc route: births attribute per window, never per allocator route, §8 R7); `overflowing` flat (the seal walk's own literal parses are outside this window: store-walk residual, scientist-20 E12) | stock red: ≥ 1 parse per OLD revision (reviewer-14 F4); parse-loop plant; scalar-map copy plant (attemptCount over a copied list) | `productionSurfaceConforms` (literal = `maxNumber`) |
 | T3 (F5, D = 0) | f1 H (no deliveries) | as f1 | f1's batch | `deliveryEventsExact` (2 per seal pass: F2 R2, §8 R8) | H ∈ {10², 10³, 10⁴} | flat (stock green: 0 B at every CHECK, §8 R9) | per-authority closure plant | planned `FvapiProof.Store.TierB.deliveryEventsExactFast_eq` (unconditional; empty + nonempty) |
 
@@ -192,6 +192,9 @@ Scope: every compiled function reachable from each §5 entry that reads or write
 incl. generated equality/instance callees + stored callbacks (`.lake/build/ir/**.c` of the arm). Per function: no
 OLD-element allocation | a §1 term id | a finding. Criteria G3-1..G3-5 pass; plants G3-6..G3-8 + P-T/P-R/B13 rejected
 (reviewer-14 protocol). Reviewer: sol lane; MAIN rematches every finding against the IR.
+Seal boundary (§9 R10), both seals: `fresh` = the suffix after `before.state.authority.length`; only that list reaches
+`refreshViews`' sizer; no OLD materialization or re-encode before region entry (generated callees + callbacks
+included). Plant: a seal-hoisted OLD copy (the correct `fresh` still passed) → rejected by this row even with T1 green.
 
 ## §5 C8 coverage manifest (case → path → root + resource row; impossible combinations named)
 
@@ -328,3 +331,54 @@ body. Each entry = the refuted or unrunnable prediction → the change.
   empty finding: the frozen S2 spike driver 7d8b86d2 on the same cell → births inside `deliveryEventsExact` 64·H + 128
   at A k=0 (H 10², 10³), subp 128, sub 0, replies = stock's ⇒ the observer sees births in this role. T3 keeps its
   grade, roots + plant; stock = green; the cell's red = the per-authority closure plant.
+
+## §9 Post-arm matrix rulings (MAIN; arm diagnostics + stock replays; after the first S2 commit)
+
+Arm evidence = lane 236ce32 (driver 349571cc) + workspace-only variants; stock = 192774d9 (`sha256sum -c`); logs +
+numbers = the ruling commit body (archives `.scratch/u4/w3/tierb-preflight/{k3v3,k3d,k3var,k3g,k3f}-job.*`,
+gitignored). Review: consultant-62 on MAIN's drafts (2 sound / 4 revise / 2 unsound) + advisor. Each entry = the
+frozen check that errs against the contract, its recorded firing, the change; the frozen checks' reds stay recorded.
+No arm credit comes from these diagnostics: the closing matrix runs on the frozen arm driver of record.
+
+- R10 K3 semantic region + NEW-width strata (§1 T-drop + T-K3, §2 T1 + T1-err, §4). Firing: sizing at the seals
+  (outside the region): T1 flat at 1,472 B while the region omits the per-seal NEW sizing (117,324 B); sizing inside
+  (variant S-in): T1 (A k=1 suba) 118,796 / 118,796 / 119,020 B at T = 100 / 400 / 1,000 and T1-err refresh 11,958
+  vs 12,014 B at H = 10² / 10³ = NOT-FLAT on the NEW operation numbers' digit width alone; T1-by flat (one width);
+  within one width S-in is flat (T1 {100, 400, 900} 118,796 ×3, T1-err {10², 900} 11,958 ×2). C5/C6 forbid OLD-sized
+  refresh work, not a NEW counter's extra printed digit ⇒ the unstratified "flat in T | H" errs against the contract.
+  Change: both seals pass their exact NEW authority suffix + its encoder to `refreshViews`, which sizes it once per
+  invocation before its kind loop (semantic extent = NEW sizing + per kind: covered guard, running total, threshold
+  decision, view update; `buildCheckpoint` = T-K2, recorded apart; the symbol census-resolved on driver + probe). T1 +
+  T1-err grade flat WITHIN each fixed-NEW-width stratum, never across: T1 {100, 400, 900} + {1000, 1010, 1020}; T1-err
+  {10², 900} + {1000, 1020}. Width constancy per stratum = a fixture fact asserted by review: one setup batch
+  (`hist-probe.py` BATCH = 1,024 ⇒ a fixed generation), operation numbers 3 | 4 digits by construction. Stock
+  feasibility: f1 completes at 1,010 + 1,020 with reopen ok; stock T1 red in both strata (A k=1 suba 20,170,656 →
+  173,028,256 B over 100 → 900; 192,138,144 → 195,977,504 B over 1,000 → 1,020; T = 1,000 = the sealed record).
+  T1-err: the first kind's covered guard throws `.corrupt .graph` after the NEW sizing, before that kind's running
+  total / checkpoint / update work; roots `refreshKind_guard` + `refreshViews_guard`, adapted to the new signature.
+  Its frozen plant (the covered check moved after the kind's suffix sizing) is retired: covered = H + 2 on a next
+  authority of length H + 1 ⇒ `Hist.drop` = [] ⇒ nothing H-sized to detect. Replacement = realized pre-guard OLD work
+  (an OLD-spine materialization or OLD re-encode before the guard, realized in the emitted C, `.corrupt .graph` kept,
+  its length/count predeclared, a nonzero byte-grade exit). A seal-hoisted OLD copy runs before the region ⇒ the
+  seal boundary = a §4 G3 row (both seals); T-drop charges both seals' NEW suffix; T-K3 = one sizing print per NEW
+  authority event per seal invocation (model forecast + real = 2; composed once with EA40-FORECAST).
+- R11 T1-op fixed-branch cohorts (§2 T1-op). Firing: arm RV − BC [1,472, 1,088] (S-in [118,796, 118,412]) = a 24 B
+  per kind-refresh branch contrast with no OLD work (emitted C,
+  `.scratch/u4/w3/tierb-preflight/refreshKind-emitted-c.txt`: the checkpoint branch reuses `buildCheckpoint`'s
+  unshared `Except.ok` + pair and allocates `some` + `IndexView` =
+  56 B; the view-update branch allocates `IndexView` + pair + `Except.ok` = 80 B, its OLD view being shared; 16
+  kind-refreshes per setup) ⇒ the frozen cross-branch equality fails without OLD work, and any cross-branch difference
+  is blind to a both-branch OLD-tail copy (24·16·64 vs 24·16·65 B cancels the 384 B contrast: 26,048 B each). Change:
+  §2 T1-op = 8 fixed-branch cells, each cohort exactly flat across H and t, no cross-cohort subtraction, no slack; the
+  original pair = the branch-boundary semantic + reopen check, its cost contrast recorded. Stock feasibility (scratch
+  shapes, X = 100·H + t): every cell reaches its branch (BC 0 ×4 | 16 ×4; the t = 64 setup does not checkpoint),
+  reopen ok; cohort N red (7,055,552 / 12,787,712 B at t 32 / 62, flat in H), cohort C green (1,120 B ×4). Controls
+  before credit: (i) OLD-tail copy + (ii) OLD re-encode placed before `refreshKind`'s branch test (one build each
+  serves T1, T1-by + both cohorts; t variation rejects them), a checkpoint-path-only plant, a whole-history plant (H
+  variation rejects it); each realized in the emitted C with its predicted delta declared before its run; plant (iii)
+  re-fired on the closing matrix.
+- R12 qualification re-base (§7, `m4-qual.sh`): with the NEW sizing inside, the t1err region = 11,958 B (> the c ≤ 64
+  of `exact=0`) and width-dependent across 10² / 10³ ⇒ `rp-clean` grades an N2s region (c ≤ 64); every t1err plant +
+  run-* cell uses the one-width grid {10², 900}; qualification #6 reruns with the runner edits.
+- R13 framing (§0): a role = its semantic extent, declared with the terms its region leaves out (not a symbol alias);
+  §8 stays stock-only.
