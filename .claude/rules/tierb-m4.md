@@ -15,8 +15,15 @@ paths:
 - `m4-probe.py` = D + RP over `tests/store/model/hist-probe.py` (imported unchanged; f1/f2 + V5 keep its law). D =
   the §2 shape registry (`SHAPES`: setup → measured batch → effects; roles writer/reader/alloc; per-phase minima E/F/R):
   model sessions = programs A/B/C + count programs, pure sessions = program P with PARENT `dispatchOperation` (the
-  observer refuses PARENT = START). An arm passes `--symbols FILE` (its census-resolved roles + registered traces),
-  recorded before its first graded run. RP = `rp n2s|n3s|t1err` over `fvapi-store-m4-reader-probe`: the probe's final
+  observer refuses PARENT = START). An arm passes `--symbols FILE` (its census-resolved roles + registered traces; a
+  `minima` key → rc 2: floors live in the grader), recorded before its first graded run. `--profile lazy-alloc` (M4 §9
+  R14; default `stock`) = the arm's allocator floors: alloc role exactly [U `allocatedHas`, B `allocatedHas___boxed`]
+  (else rc 1), per-entry U|B floors f1r (0,1,1)|(0,1,1), W3 (0,1,1)|(0,2,2), f3c (0,0,0)|(0,2,2), f1r-pure P 1|1,
+  f3c-pure P 0|2; `census` binds U + B = present, distinct addresses, no direct call/jmp between them (a nested entry
+  counts twice); rebind after any codegen change. `hist f1|f2 H … --hist-symbols FILE` = hist-probe's count run +
+  exact roles (writer 4, reader 10, alloc 6 | stock 3) + trace = the map's PREDICTED trace (arm map
+  `m4-arm-hist.json`: the S2 spike record); a mismatch = a matrix error → ruling, never a refit. RP = `rp
+  n2s|n3s|t1err` over `fvapi-store-m4-reader-probe`: the probe's final
   status line (`--status`) = the plain run's line + `rc=0`, checked on the observed run — bpftrace's own exit never
   carries the probe's.
 - `M4ReaderProbe.lean`: one exported `@[noinline]` function per region, called twice through ref'd closures (cold,
@@ -34,8 +41,13 @@ paths:
 - `native-records.sh`: builds `fvapi` + `fvapi-store-input-probe` first (a failed build = exit 1 before any child);
   c8b children take their identity env from the caller (`.claude/rules/c8b.md`); absent ⇒ no `c8b` line ⇒ that child
   fails.
-- Qualification = `m4-qual.sh STOCK BLIND PROBE PLANT MINI OUT`: 33 plants, each `qual NAME rc want ok|FAIL`; PLANT =
-  STOCK's tree with `attemptCount` + 1 (`Fvapi/Store/Model.lean`), kept built at `~/gate/fvapi-sd-plant-d0c6b4e`.
+- Qualification = `m4-qual.sh STOCK BLIND PROBE PLANT MINI ARM ARMPLANT OUT`: 55 checks, each `qual NAME rc want
+  ok|FAIL`; PLANT = STOCK's tree with `attemptCount` + 1 (`Fvapi/Store/Model.lean`), kept built at
+  `~/gate/fvapi-sd-plant-d0c6b4e` (identity = sha256 prefix 446fbcdd; no SHA256SUMS); ARM = the frozen arm driver;
+  ARMPLANT = ARM's tree + `m4-armplant.py apply` (both allocators gate `candidate == "f"×32 && used candidate`: valid
+  hex outside the fixture tape, U + B stay compiled + reachable, never entered; built with `lake build fvapi` alone,
+  restore = the tree's files, rebuilt driver = ARM's hash; `check` confirms the gate in both files); R14 plants grade
+  the log's named cause through `m4-qual-logs.py` (`skip`, `forward`, `trace`), not the exit alone.
   Separate jobs: the full §6a stock-vs-stock diff + the full `native-records.sh` run (c8b env).
 - Firing record (first lane e6560a5; re-fired at 236ce32 = qualification #5 and at c936bc0 = qualification #7, PROBE =
   the frozen arm probe 2cfbf32f; stock 192774d9, PLANT 446fbcdd, MINI b672655b): `m4-qual fails=0`, 33/33 at the
@@ -46,7 +58,13 @@ paths:
   repeat:f1r's trace mismatch, then a clean rp:t1err ⇒ m4-run bad=1; run-verdict + nr-verdict = no verdict line (a
   fake python3); nr-child + nr-first = c8b:stock without PS; nr children = resident-views (c8-frames grades against
   the recorded stock IR ⇒ red on any non-stock build); sd-plant = 4 differing; sd-first = 1 differing + 1
-  rejection; sd-floor = 4 < 100. Gate stages python + shell clean; a shellcheck directive carries its reason on the
+  rejection; sd-floor = 4 < 100. Qualification #8 (lane c3eda97; ARM 06a8a520, ARMPLANT 0974e1bb): `m4-qual
+  fails=0`, 55/55: d-minima-key = rc 2 (`minima` key refused); l-census = U@1e43e0 B@1e44d0 distinct, crossing 0;
+  l-bind-u + l-bind-x = the boxed route FAIL + `lazy-alloc binding` PROBLEM; h-skip = ARMPLANT alloc 0 ≠ 6; fwd-clean
+  = no `bad window`; fwd-trace = f1's `subn … want` line, none on f2; p-count-* (f1r, W3, f3c, f3c-pure) = U = B = 0 +
+  exactly the positive floors FAIL, tags + digests = ARM's (`skip ok`); stock counts rc 0 with f3c-pure allocatedIds
+  P 2 ≥ 2 (§9 R14 (c)). R14 (h) on a3b56f8f: the five lazy-alloc counts = the floors exactly, hist f1/f2 H 100 = the
+  predicted traces. Gate stages python + shell clean; a shellcheck directive carries its reason on the
   line above it. Full §6a corpus stock vs stock rc 0 (§8 R6). T1 shapes close + reopen after the measured batch
   (`m4 NAME X=x reopen ok|<decision>:<error>`, a refusal = exit 1 = plant (iii)'s second detector): stock
   T1/T1-op/T1-by at 236ce32 = the stock record byte for byte + `reopen ok` at every X; at c936bc0 stock T1 + T1@4 +
@@ -57,7 +75,11 @@ paths:
   a graded run; a region function carries its work (`refreshViews` = its 8 kinds written out, = the fold by
   `refreshViews_fold`).
 - An arm's sweep needs its registered traces (`--symbols FILE` key `trace`; missing ⇒ rc 2 "no registered … trace
-  (record it with count)"): count mode on the frozen arm driver records them first. Arm driver of record =
+  (record it with count)"): count mode on the frozen arm driver records them first. `m4-run.sh DRIVER BLIND PROBE OUT
+  [--symbols F] [--profile P] [--hist-symbols HF] [CELL…]` forwards the options to every cell; cells `census:S`,
+  `count:S` (the grid's first point), `histcount:f1|f2` beside `sweep:S`, `repeat:S`, `hist:f1|f2`, `rp:…`; the closing
+  record (§9 R14 (f)) = one driver's count receipts + census + byte/repeat cells; hist sweeps R = 1 per H, hist repeat
+  ×2. Arm driver of record =
   `~/gate/fvapi-arm-a3b56f8f/{fvapi, fvapi-store-m4-reader-probe, fvapi-store-hist-reader-probe, SHA256SUMS, SOURCE}`
   (lane b2526c3's build; `sha256sum -c` before each use).
 - Strata + cohorts (M4 §9 R10/R11): a `SHAPE@N` cell = one fixed-NEW-width stratum, flat within, never compared across
