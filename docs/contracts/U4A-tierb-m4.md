@@ -40,7 +40,8 @@ Review record (consultant-58 rounds 1–2, advisor, MAIN rematches): the freeze 
   the schedule); count mode records the exact counts; the stock preflight confirms each prediction before any arm cell
   (a mismatch = a matrix error → a recorded MAIN ruling before any arm run, never a silent change). An entry below its
   minimum, or unresolved to a compiled symbol by the census = INCOMPLETE (counts as failed). A failed/incomplete cell
-  stays in the verdict; nothing is relabelled feasible or passing.
+  stays in the verdict; nothing is relabelled feasible or passing. Under an acceptance profile (§9 R14) a role's floors
+  are per compiled entry of its declared routes, held by the grader (`m4-probe.py`), never by a symbol map.
 - Role map: a graded role = a semantic reader/writer; its compiled symbol(s) per binary are declared before the arm run
   (stock = the base function; arm = the S2 port's function). A callee the arm fuses into its caller is graded through
   the enclosing semantic role: base `currentRows` (called by `coalescingRow`, `Model.lean:249–257`, and the
@@ -144,7 +145,7 @@ session ⇒ model grids stop at f3 n = 64 and f4 A = 64. `-pure` cells = f3a-pur
 256}), f4w-pure + N6-A-pure (A ∈ {8, 64, 512}), f4r-pure (A ∈ {8, 512}): the model row's setup, measured batch,
 effects, SUB roles + expectation on the pure backend, graded in program P (f1r-pure's window: START `call:` + CHECK
 `ret:` the pure `batch`, PARENT `dispatchOperation` — the observer refuses PARENT = START); minima = the model row's
-per-phase sums.
+per-phase sums, except the f3c-pure allocator: P ≥ 2 (pure runs once; §9 R14).
 
 ## §3 Synthetic cohorts (harness RP; in-process; warm second call; input `Hist` held across the call)
 
@@ -269,7 +270,7 @@ this ruling also lands in the contract (C8).
 | `tests/store/model/c8b-graded.sh` | per mode 0 | initial `lake build` (`:71`, `:100`, `:117`) failing while stale outputs match → today exit 0 (red, to record) → fix: builds through `step` → 1 | registry mismatch → 1 (fired) | build plant + clean later steps → 1 | exits 1/2/3/4 fired (A7); build fix fired red-first (lane 51f70bf; `.claude/rules/c8b.md` Build accounting) |
 | blind runner: `tests/store/tierb/blind-lane.sh` (port of the scratch blind wrapper + `blind-run.sh`) | passing subset → 0 | a failing case → ≠ 0 (today: `echo "rc=$?"` last ⇒ wrapper 0: red, to record) | case count ≠ manifest → ≠ 0 | failing case first, passing after → ≠ 0 | ported + fired red-first (lane 51f70bf; `.claude/rules/tierb-reversal.md`) |
 | `state-diff.py` (§6a) | stock vs stock → 0 | a driver child exiting nonzero without a reply → ≠ 0 | plant driver (one reader mutated) → 1; accepted count below the floor → 1 | first image differs, later images identical → 1 | qualified by `m4-qual.sh` sd-* (mini corpus) + the full corpus stock vs stock → 0 (§8 R6) |
-| `tests/store/tierb/m4-run.sh` (every §2/§3 cell × R = 3 + aggregation) | clean subset → 0 | a cell child exiting nonzero without its verdict line → 1; a missing verdict line → 1 | one planted failing cell among clean ones → 1; a count below its minimum → 1 | failing cell first → 1 | qualified by `m4-qual.sh` run-* (a count below its minimum = a registered-trace mismatch inside the cell: the complete-trace grade ⊇ the minima) |
+| `tests/store/tierb/m4-run.sh` (every §2/§3 cell × R = 3 + aggregation; + `count:SHAPE` + `histcount:f1\|f2` + the arm hist map forwarded, §9 R14) | clean subset → 0 | a cell child exiting nonzero without its verdict line → 1; a missing verdict line → 1 | one planted failing cell among clean ones → 1; a count below its minimum → 1 | failing cell first → 1 | qualified by `m4-qual.sh` run-* (a count below its minimum = a registered-trace mismatch inside the cell: the complete-trace grade ⊇ the minima) |
 | native/frame records invalidated by the closing driver (C8: "every invalidated native/frame record"): owner = the U4A-close store-control gate stage, aggregation runner `tests/store/tierb/native-records.sh` (planned); children = `tests/store/model/c1-roots.py` (`.claude/rules/c1-roots.md`), `c8-frames.py` (`cost-frame.md`), `input-probe.py` (`cost-input.md`), `resident-views.py`, `enqueue-sources.py`, `post-writer-guard.py` (their rules), `c8b-graded.sh` (`c8b.md`); each child keeps its recorded plants | all children clean → 0 | a child exiting nonzero → 1 | a child's verdict line missing or its count mismatched → 1 | first child fails, later children clean → 1 | qualified by `m4-qual.sh` nr-* (a nonzero verdict count misses the same zero-failure pattern as a missing line); full stock run with the c8b env = a separate job (`.claude/rules/tierb-m4.md`) |
 | G3 review | judgment | — | plants P-T/P-R/B13 + G3-6..8 rejected | — | per reviewer-14 |
 
@@ -382,3 +383,51 @@ No arm credit comes from these diagnostics: the closing matrix runs on the froze
   run-* cell uses the one-width grid {10², 900}; qualification #6 reruns with the runner edits.
 - R13 framing (§0): a role = its semantic extent, declared with the terms its region leaves out (not a symbol alias);
   §8 stays stock-only.
+- R14 allocator reach (stock eager id list → arm on-demand membership; review consultant-63 (1 sound / 4 revise
+  / 2 unsound on v1; its recommended ruling adopted) + advisor; §0 positive-count rule + role map, §2 f1r /
+  f1r-pure / W3 / f3c / f3c-pure alloc minima + the pure-cell note, §7 hist-probe + m4-run.sh rows). Firing (frozen
+  arm driver a3b56f8f; records stay): count minima FAIL f1r `allocatedHas` E,F,R [0,1,1] vs [1,0,0], W3 [0,1,1] vs
+  [1,1,1], f3c [0,0,0] vs [1,1,1], f3c-pure P 0 vs 1 (f1r-pure P 1 ok on the unboxed entry alone); hist:f1 + hist:f2
+  INCOMPLETE at every H (`bad window`: the stock hist map's `allocatedIds`, absent from the arm). Cause: stock
+  `allocatedIds` materializes row + answer ids before a command's draw; C5 forbids that OLD-sized list, not a phase.
+  On the arm, binding `used := allocatedHas s` constructs a closure (not membership); membership runs per valid
+  candidate at the draw through two compiled routes: B = `allocatedHas___boxed` (clang inlined the body; the
+  state-only predicate's closure) and U = `allocatedHas` (direct calls from the new-row answer's
+  `id == row || used id`, non-equal branch). Each successful fresh id draw on these fixtures (oracle tape: valid,
+  distinct ids) evaluates membership once; the model suspends before the candidate and resumes once each in F and R,
+  pure runs once. The frozen floors encoded the stock list's eager placement; the runner checked one mapped symbol.
+  Change:
+  (a) acceptance profile `lazy-alloc` in `m4-probe.py` beside SHAPES (`--profile lazy-alloc`; default `stock`); a
+  symbol map supplies names + registered traces alone (a `minima` key → rc 2); under `lazy-alloc` the five shapes'
+  alloc role = exactly [U, B] (else rc 1).
+  (b) per-entry floors, U | B | total: f1r (0,1,1) | (0,1,1) | (0,2,2); W3 (0,1,1) | (0,2,2) | (0,3,3); f3c (0,0,0)
+  | (0,2,2) | (0,2,2); f1r-pure P 1 | 1 | 2; f3c-pure P 0 | 2 | 2. E ≥ 0 = a minimum (E = 0 recorded, not graded).
+  The existing per-entry count programs stay; graded SUB tuples, order, registered traces + byte criteria unchanged.
+  (c) pure runs once ⇒ the f3c-pure allocator floor = P ≥ 2 on stock + arm (stock executable floor 1 → 2; the §2
+  "model per-phase sums" note errs for pure; its other pure discrepancies stay recorded, not waived).
+  (d) census binding under `lazy-alloc`: U + B present at distinct addresses, no direct call/jmp between them (the
+  one property the per-entry runtime floors cannot show: a nested entry counts twice); rebind after any codegen
+  change.
+  (e) hist:f1/f2: committed arm hist map `tests/store/tierb/m4-arm-hist.json` (the stock map, alloc [U, B]) whose
+  traces are PREDICTED by the S2 spike grading record (f1 A [6,11,15,20], f2 A [5,11,14,20], B [11], C [20]),
+  forwarded by `m4-run.sh --hist-symbols`; before its first byte grade, `m4-probe.py hist f1|f2` = hist-probe count rc
+  0 + exact role counts (writer 4, reader 10, alloc 6 | stock 3) + trace = the predicted one; a mismatch = a matrix
+  error → ruling, never a refit.
+  (f) the closing record = one driver's count receipts (`m4-run.sh` cells `count:SHAPE` at each grid's first point
+  + `histcount:f1|f2`, in its default set) + census + byte/repeat cells; hist sweeps run R = 1 per H, hist `repeat`
+  ×2 (claimed as run).
+  (g) qualification #8 (m4-qual.sh + ARM = the next frozen arm driver + ARMPLANT built once from its tree): clean
+  witnesses on ARM (count f1r 100 `lazy-alloc` rc 0, hist f1 100 rc 0); binding plants (alloc [U] → 1,
+  [U, latestRow] → 1, a `minima` key → 2); hist forwarding graded on the cell's log, not its exit (arm hist flatness is
+  unmeasured): the map forwarded ⇒ no `bad window`; f1's trace altered ⇒ the `subn … want` line on f1, none on f2;
+  native membership skip = ARMPLANT (both allocators gate `candidate == "f"×32 && used candidate`: valid hex outside
+  the tape, the call reachable; its emitted C + objdump checked first: both routes' sites + the closure present):
+  count f1r, W3, f3c, f3c-pure → rc 1 with U = B = 0 + the exact failed floors, tags + normalized digests = ARM's;
+  hist f1 → rc 1 (alloc 0 ≠ 6). The v1 map plants are retired (non-discriminating).
+  (h) credit: the five counts + hist f1/f2 counts rerun on a3b56f8f under `lazy-alloc` (no build) = the same binary
+  red under the frozen check, green under this one; that + qualification = tool credit alone; arm credit = the
+  closing frozen driver's matrix of record.
+- Register (separate dispositions): f4 map's shared host (`latestAttempt` + `attemptEvolutionDecidable` → one host
+  counted twice; historical tuple/trace kept); named hosts (callerBindingsDecidable, conflicts, descriptor membership,
+  updateStructureDecidable, meaning): host reach ≠ each predicate's reach; hist `prefixGeneration` named in §2 f1/f2,
+  absent from hist-probe's program; §7 "complete-trace grade ⊇ the minima" refuted by the four count reds (→ f).
