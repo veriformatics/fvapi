@@ -80,8 +80,11 @@ paths:
   `count:S` (the grid's first point), `histcount:f1|f2` beside `sweep:S`, `repeat:S`, `hist:f1|f2`, `rp:…`; the closing
   record (§9 R14 (f)) = one driver's count receipts + census + byte/repeat cells; hist sweeps R = 1 per H, hist repeat
   ×2. Arm driver of record =
-  `~/gate/fvapi-arm-a3b56f8f/{fvapi, fvapi-store-m4-reader-probe, fvapi-store-hist-reader-probe, SHA256SUMS, SOURCE}`
-  (lane b2526c3's build; `sha256sum -c` before each use).
+  `~/gate/fvapi-arm-06a8a520/{fvapi, fvapi-store-m4-reader-probe, fvapi-store-hist-reader-probe, SHA256SUMS, SOURCE}`
+  (lane c3eda97's build; `sha256sum -c` before each use); its matrix of record (default cell set, `--symbols
+  m4-arm.json --profile lazy-alloc --hist-symbols m4-arm-hist.json`) = 114 cells, 113 pass, the one fail = sweep:N6-A
+  (A k0/k1 NOT-GROWING = the N6 contract's record, declared before the run); hist:f1 + hist:f2 flat on the arm.
+  Superseded: a3b56f8f (lane b2526c3; matrix kmx 59/66).
 - Strata + cohorts (M4 §9 R10/R11): a `SHAPE@N` cell = one fixed-NEW-width stratum, flat within, never compared across
   (T1 {100, 400, 900} / T1@4 {1000, 1010, 1020}; rp:t1err {10², 900} / rp:t1err@4 {1000, 1020}); T1-opN / T1-opC =
   fixed-branch cohorts (X = 100·H + t; RV − BC exactly flat within each); the original T1-op pair = expect `pair`
