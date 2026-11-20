@@ -6,7 +6,8 @@ Tier: kernel (store representation + its proofs; no downstream re-check). Law: `
 ## Change
 
 `State`'s nine history fields (`entries`, `origins`, `revisions`, `audits`, `answers`, `admissions`, `deliveries`,
-`descriptors`, `authority`) and each row's nested `attempts` become `Hist α` = a newest-first cons list with O(1) push;
+`descriptors`, `authority`) and each row's nested `attempts` become `Hist α` = a newest-first cons list with O(1) push and an O(1) cached length
+(`size` + its proof `size_eq`; amendment = store walks SW-K8, `docs/contracts/U4A-storewalk.md`);
 the chronological view `Hist.toList` is noncomputable (compile barrier: a compiled use fails to build). Production
 functions consume `Hist` directly; proofs reason through `Hist.toList`. Reference implementation = spike S2
 (`wt/builder-39` @ 0e27647, kept until C2 passes); the unit re-implements under these rows.
