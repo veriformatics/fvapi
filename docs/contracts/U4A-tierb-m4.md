@@ -105,7 +105,8 @@ C5 keeps input scratch distinct from permitted output, and a charged OLD copy do
 The S2 port keeps the `.row` branch a representation swap (the same O(A) temporaries over `Hist`, never relabelled
 T-out). Closure = the store-walk N6 designed change that removes/fuses the temporaries, re-graded by G3 + the N6-A
 cell (§2), or a recorded contract ruling; until then C5, and with it unit acceptance, stays open (stated in the
-store-walk proposal to the user); a batch-total measurement or a proved cost bound never closes them. Base
+store-walk proposal to the user); a batch-total measurement or a proved cost bound never closes them. CLOSED by the
+recorded ruling §9 R15 (user ruling `.agent/spec.md` Decisions → Row history): charged exceptions. Base
 `attemptCount` maps a list (`Model.lean:210`): the arm's allocation-free scalar encoding = C11's fix (f4w), not a base
 fact.
 
@@ -427,6 +428,7 @@ No arm credit comes from these diagnostics: the closing matrix runs on the froze
   (h) credit: the five counts + hist f1/f2 counts rerun on a3b56f8f under `lazy-alloc` (no build) = the same binary
   red under the frozen check, green under this one; that + qualification = tool credit alone; arm credit = the
   closing frozen driver's matrix of record.
+- R15 row-history exceptions (user ruling, `.agent/spec.md` Decisions → Row history; inputs: scientist-21 K4 design appraisal (K4's first walk revisits 2 OLD keys per pre-batch attempt on every update; its second walk searches a list), the un-observed timing of f4w's two updates on the N6a lane build (pure: 17.7 / 76.9 / 681 ms at A = 8 / 64 / 512, 3 repeats each) and the recorded sweep:N6-A-pure peaks on 06a8a520 (0.54 / 1.07 / 5.72 MB)). T-rowcheck + T-headcheck = charged per-request exceptions: their O(A) temporaries stay, C5 accepts them as the stated per-request term of the updated request's attempt history (E-A40 assembly charges it before admission), no N6 certificate change (SW-N6b retired); the N6-A cells stay recorded as that term's measurement (expect = grow), never a pass/fail of C5; G3 keeps every other temporary under C5. The construction walk's list search is MAIN's row SW-K4a (keyed lookup), the walk itself a stated term.
 - Register (separate dispositions): f4 map's shared host (`latestAttempt` + `attemptEvolutionDecidable` → one host
   counted twice; historical tuple/trace kept); named hosts (callerBindingsDecidable, conflicts, descriptor membership,
   updateStructureDecidable, meaning): host reach ≠ each predicate's reach; hist `prefixGeneration` named in §2 f1/f2,
