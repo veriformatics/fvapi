@@ -54,6 +54,7 @@ identities under `.claude/rules/c8b.md` once E-A40's composition targets are fix
 
 
 SW-V (+ the `csimp` gate stage) → SW-K8 → SW-K1 + SW-K5 (+ pins, both startup routes) → SW-N6a → SW-K4a → SW-N4 → SW-K2 → SW-K7,
-SW-N25/N26, SW-N22–N24, SW-N8 → one combined implementation + evidence checkpoint on a new frozen driver → C8b
+SW-N25/N26, SW-N22–N24, SW-N8, SW-A1–A7 (section A live-path history scans; SW-A1 before K7's whole-checker WORK grade)
+→ one combined implementation + evidence checkpoint on a new frozen driver → C8b
 regeneration on that driver → the E-A40 memory proofs, once. C2's S2 checkpoint (lane b6b9009) stays identifiable:
 each row lands as its own lane commit with its refinement theorem.
