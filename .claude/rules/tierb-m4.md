@@ -13,10 +13,14 @@ paths:
   pass, 1 finding / failed / incomplete cell, 2 usage; `m4-run.sh`, `native-records.sh` + `m4-qual.sh` never reset an
   earlier failure.
 - `m4-probe.py` = D + RP over `tests/store/model/hist-probe.py` (imported unchanged; f1/f2 + V5 keep its law). D =
-  the §2 shape registry (`SHAPES`: setup → measured batch → effects; roles writer/reader/alloc; per-phase minima E/F/R):
+  the §2 shape registry (`SHAPES`: setup → measured batch → effects; roles writer/reader/alloc/iter; per-phase minima E/F/R):
   model sessions = programs A/B/C + count programs, pure sessions = program P with PARENT `dispatchOperation` (the
   observer refuses PARENT = START). An arm passes `--symbols FILE` (its census-resolved roles + registered traces; a
-  `minima` key → rc 2: floors live in the grader), recorded before its first graded run. `--profile lazy-alloc` (M4 §9
+  `minima` key → rc 2: floors live in the grader), recorded before its first graded run. Role `iter` = HIT points
+  `SYM+OFF` (`.claude/rules/observer.md`): one count program per point (hitn per phase + `count iter total E,F,R`),
+  each pinned to its instruction by `Shape.pins` (objdump text, whitespace-collapsed; census + count print `pin … ok|
+  FAIL`, FAIL = bad) ⇒ a rebuild that moves code fails closed; rebind offsets + pins from the new disassembly.
+  `--profile lazy-alloc` (M4 §9
   R14; default `stock`) = the arm's allocator floors: alloc role exactly [U `allocatedHas`, B `allocatedHas___boxed`]
   (else rc 1), per-entry U|B floors f1r (0,1,1)|(0,1,1), W3 (0,1,1)|(0,2,2), f3c (0,0,0)|(0,2,2), f1r-pure P 1|1,
   f3c-pure P 0|2; `census` binds U + B = present, distinct addresses, no direct call/jmp between them (a nested entry
@@ -64,7 +68,10 @@ paths:
   = no `bad window`; fwd-trace = f1's `subn … want` line, none on f2; p-count-* (f1r, W3, f3c, f3c-pure) = U = B = 0 +
   exactly the positive floors FAIL, tags + digests = ARM's (`skip ok`); stock counts rc 0 with f3c-pure allocatedIds
   P 2 ≥ 2 (§9 R14 (c)). R14 (h) on a3b56f8f: the five lazy-alloc counts = the floors exactly, hist f1/f2 H 100 = the
-  predicted traces. Gate stages python + shell clean; a shellcheck directive carries its reason on the
+  predicted traces. Qualification #9 (lane 41c772e; same STOCK, PLANT, MINI, ARM, ARMPLANT): `m4-qual fails=0`, 55/55.
+  Pin firing (census = nm + objdump alone): a copy of driver 45b270a2 with SCAN+0x4e's ModRM byte 0x76 → 0x7e
+  (`%r14` → `%r15`, same length) → census QA-arev rc 1 naming that pin alone, clean rc 0; `insn` at a mid-instruction
+  offset = "". Gate stages python + shell clean; a shellcheck directive carries its reason on the
   line above it. Full §6a corpus stock vs stock rc 0 (§8 R6). T1 shapes close + reopen after the measured batch
   (`m4 NAME X=x reopen ok|<decision>:<error>`, a refusal = exit 1 = plant (iii)'s second detector): stock
   T1/T1-op/T1-by at 236ce32 = the stock record byte for byte + `reopen ok` at every X; at c936bc0 stock T1 + T1@4 +
