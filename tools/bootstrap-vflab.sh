@@ -38,6 +38,19 @@ sudo systemctl enable --now fvapi_gate.slice
 [ "$(systemctl is-enabled fvapi_gate.slice)" = enabled ] || { echo "fvapi_gate.slice not enabled" >&2; exit 1; }
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
     shellcheck jq rsync curl bubblewrap python3 gcc libc6-dev >/dev/null
+# needrestart (unattended upgrades) restarts every service that maps an upgraded library, the
+# transient run-*.service units of tools/vflab-run included: a restart kills the running job and
+# re-runs it on its consumed stdin (rc 125). Gate jobs are never restarted.
+if [ -d /etc/needrestart/conf.d ]; then
+    sudo tee /etc/needrestart/conf.d/fvapi-gate.conf >/dev/null <<\NR
+# fvapi + fvdep gate jobs = transient systemd-run units (tools/vflab-run): never restart them.
+$nrconf{override_rc}{qr(^run-.+\.service$)} = 0;
+NR
+    sudo perl -e "our %nrconf; do \"/etc/needrestart/needrestart.conf\"; die \$@ if \$@;
+        exit((\$nrconf{override_rc}{(grep { \"run-p1-i1.service\" =~ /\$_/ }
+            sort keys %{\$nrconf{override_rc}})[0]} // 1) == 0 ? 0 : 1)" ||
+        { echo "needrestart still restarts gate units" >&2; exit 1; }
+fi
 mkdir -p ~/gate/ws
 # Node for dev tooling (Renovate config validator; the console toolchain later): a pinned release
 # >= 7 days old, sha256-verified, at ~/.local/node (tools/vflab-run puts its bin on PATH).
