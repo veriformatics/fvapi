@@ -19,6 +19,22 @@ ci_missing() {
         | if length == 1 then empty else $s end' "$@" <<<"$doc"
 }
 
+# Watches run $1 until it completes, at most 5 watches: `gh run watch` can exit nonzero while the
+# run is still going (an API error mid-watch). Prints the last watch's rc; a run still incomplete
+# after the last watch keeps unfinished jobs, which ci_missing reports (fail closed).
+watch_run() {
+    local id="$1" rc=1 status
+    for _ in 1 2 3 4 5; do
+        gh run watch "$id" --exit-status --interval 15 >/dev/null
+        rc=$?
+        status="$(gh run view "$id" --json status --jq .status)" || status=unreadable
+        [[ "$status" == completed ]] && break
+        printf 'ci-gate: run %s %s after watch rc %d; watching again\n' "$id" "$status" "$rc" >&2
+        sleep "${CI_GATE_RETRY_SLEEP:-15}"
+    done
+    printf '%s\n' "$rc"
+}
+
 main() {
     root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
     cd -- "$root" || exit 2
@@ -53,8 +69,7 @@ main() {
     fi
     printf 'ci-gate: run %s · commit %s · tree %s\n' "$id" "${sha:0:7}" "$tree"
 
-    gh run watch "$id" --exit-status --interval 15 >/dev/null
-    watch_rc=$?
+    watch_rc="$(watch_run "$id")"
     jobs="$(gh run view "$id" --json headSha,conclusion,jobs)" || {
         printf 'ci-gate: run %s unreadable\n' "$id" >&2
         exit 2
@@ -78,7 +93,7 @@ main() {
     fi
 }
 
-# Sourcing exposes ci_missing without pushing (tools/gate-probe.sh).
+# Sourcing exposes ci_missing + watch_run without pushing (tools/gate-probe.sh).
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
