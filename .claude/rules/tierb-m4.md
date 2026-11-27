@@ -118,5 +118,22 @@ paths:
   cells; each plant's predicted-pass cell passes. The red shapes QA-obp / QA-coal / QA-arev = the red record (lanes
   fef5b85, f7eb4bd, 41c772e); on A3 drivers they fail by design. Qualification #10 (lane eaa54d44; same STOCK,
   PLANT, MINI, ARM, ARMPLANT): `m4-qual fails=0`, 55/55.
+- SW-A2 post-fix cells (lane f1ffee5a): QA-replay-fix (h keyed requests; a fresh keyed request), QA-replay-hit-fix
+  (a replay of the oldest keyed request: no id draw ⇒ the measured batch runs in phase E alone), QA-alloc-fix (h
+  answers; a key-free request), QA-collide-{o,x,a}-fix (per-X `config` id tape: the first candidate = the oldest
+  origin id | another caller's | the oldest answer id, then a fresh one), QA-noalloc-fix (off-route: a claim) =
+  census:S + countsweep:S, grid 8,32. forbid_re = the frozen replay scan (both passes) + `allocatedHas` in every
+  cell, + the A2 lookup the measured command must not reach. Minima = ≥ 1 per entered phase (collisions:
+  `PointSidecars_allocated` = 2). A2 drivers keep `allocatedHasA2` + `A3Overlay_observe` as `___boxed` alone (bodies
+  inlined) ⇒ these roles name the boxed symbols. Firing record (frozen drivers ~/gate/fvapi-a2-b3dd2ba3 clean,
+  ~/gate/fvapi-a3b-ad2aba4a pre-A2, ~/gate/fvapi-a2plant-{idem,alloc} = the a3Oracle field back to the frozen scan):
+  clean all seven pass, every count equal at h = 8 and 32; pre-A2 all seven FAIL (A2 roles absent; six enter a
+  frozen scan, noalloc none: its red = absent roles alone, an off-route control); plant idem = replay-fix +
+  replay-hit-fix FAIL, plant alloc = replay-fix, alloc-fix, collide-o/x/a FAIL (the frozen scan entered; + the minimum
+  on the A2 lookup the plant drops); a plant's off-route cells grade INCOMPLETE, not pass: its binary drops the A2
+  lookup it bypasses and a count run fails closed on an absent role. No forbid or minimum check failed there (the
+  runner prints every failing check, beside INCOMPLETE roles too); the forbid on the dropped lookup = vacuous there.
+  The red shapes QA-replay / QA-alloc = the red record (lane 3694acc8, qualification #11 55/55). Qualification #12
+  (lane f1ffee5a; same STOCK, PLANT, MINI, ARM, ARMPLANT): `m4-qual fails=0`, 55/55.
 - Change law: an edit to any of these runners reruns `m4-qual.sh` in its commit (every plant at its expected exit);
   an edit to a §2 shape or §3 region also reruns its stock cell (`m4-run.sh … CELL`) + compares it to the stock record.

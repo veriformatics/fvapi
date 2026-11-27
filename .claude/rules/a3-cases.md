@@ -1,6 +1,10 @@
 ---
 paths:
   - "tests/store/model/a3-cases.py"
+  - "Fvapi/Store/A3Overlay.lean"
+  - "Fvapi/Store/AttemptPositions.lean"
+  - "Fvapi/Store/Seal.lean"
+  - "Fvapi/Store/Startup.lean"
 ---
 
 # SW-A3 targeted cases (`tests/store/model/a3-cases.py`)
@@ -17,7 +21,13 @@ paths:
   positions := {}) = T1 FAIL; sealpos 54c0b2fb (sealBatchA3 extends by nothing) = T1 FAIL; oldest 536df21b
   (latestRowA3 = the spine's last) = T1, T2, T3 FAIL; observe faddf094 (observe extends by nothing) = T1 + T3 FAIL
   (the decision's tentative overlay is `observe before proposal ov` too, so the mutant hides a claim's NEW attempt
-  position from its own construction check); every other case passes on each mutant.
+  position from its own construction check); every other case passes on each mutant. Rerun on the SW-A2 tree (lane
+  f1ffee5a; SW-A2 edited A3Overlay.lean + reconstruct): clean b3dd2ba3 T1–T3 pass; the four mutants re-derived as
+  `~/gate/fvapi-a2a3mut-NAME` (moved anchors: startpos `positions := PositionIndex.ofState state` → `{}`; observe =
+  `ov.extend { StateDelta.of pre next with revisions := [] }`, NEW revisions hidden alone): startpos 6144f5cf T1,
+  sealpos 397fc6f0 T1, oldest 640fbe22 T1 T2 T3, observe ca60ae7b T1 + T3 FAIL = the record above.
 - Change law: an edit to a3-cases.py, or to the overlay, position or seal code it covers (`Fvapi/Store/A3Overlay.lean`,
   `Fvapi/Store/AttemptPositions.lean`, `sealBatchA3`, `reconstruct`'s positions), reruns it on the clean driver and on
-  every mutant: each case still passes clean and still fails on its mutant.
+  every mutant: each case still passes clean and still fails on its mutant. An edit to the covered code that is
+  comment-only (its diff touches comment lines alone) or leaves the clean driver's sha256 unchanged reruns nothing:
+  the cases grade compiled behavior alone.
