@@ -102,5 +102,21 @@ paths:
   + T1-by rc 1; wholehist → T1 + both cohorts rc 1 (flat in t, +2·192·ΔH B); preguard → rp:t1err + @4 rc 1 (+24·ΔH B,
   `.corrupt .graph` kept); total1 → c2-check build rc 1 + reopen `.corrupt .graph` ⇒ T1 rc 1; sealhoist → T1 rc 0, and
   the §4 G3 seal-boundary row rejects it (blind review: both hoisted seals fail NO-OLD, both clean seals pass).
+- SW-A3 post-fix cells (lane eaa54d44): QA-obp-fix (R open misses), QA-coal-fix (k coalesces, m = 1), QA-coalm-fix
+  (m pads, k = 1; in-part search ≤ 1,024 items = proved by K2Parts.apply_shape, not measured), QA-arev-fix (k, a = 2),
+  QA-H-fix (H unrelated rows; grades A3's lookups alone) = `m4-run.sh` cells census:S + countsweep:S (no sweep/repeat:
+  their allocation is not flat by design). `countsweep` = `count` per X + every role's per-phase entry increments equal
+  across X. `forbid_re` = full-match regexes over the driver's `nm` (spec suffixes drift across builds): every match
+  probed and held at 0 entries, no match = absent = 0. QA-arevB (B fresh misses + one claim) = a measurement: `measure`
+  roles strictly increasing over X + `predict`'s exact pre-registered per-phase values (the batch-base NEW authority
+  walk = SW-N6a's charged Q term). Minima = ≥ 1 on the unboxed lookup symbol in each phase where it is entered (the
+  `___boxed` twin forwards into it). Firing record (frozen drivers ~/gate/fvapi-a3b-ad2aba4a clean,
+  ~/gate/fvapi-s0-8f78609 pre-A3, ~/gate/fvapi-a3plant-{obp,coal,latest,arev} = workspace-only scan-restoring plants):
+  clean all six pass + QA-arevB [0,54,54] at B = 8 and [0,594,594] at B = 32 = predicted; pre-A3 all six FAIL with the
+  old scans entered; plant coal = countsweep NOT-FLAT (rowIsCurrentScan 32 → 128, Keys_decEqFast) + forbid FAIL; plant
+  arev = forbid_re present + entered FAIL (the clean driver prints `absent ok`); plants obp + latest fail exactly their
+  cells; each plant's predicted-pass cell passes. The red shapes QA-obp / QA-coal / QA-arev = the red record (lanes
+  fef5b85, f7eb4bd, 41c772e); on A3 drivers they fail by design. Qualification #10 (lane eaa54d44; same STOCK,
+  PLANT, MINI, ARM, ARMPLANT): `m4-qual fails=0`, 55/55.
 - Change law: an edit to any of these runners reruns `m4-qual.sh` in its commit (every plant at its expected exit);
   an edit to a §2 shape or §3 region also reruns its stock cell (`m4-run.sh … CELL`) + compares it to the stock record.
